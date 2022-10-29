@@ -28,5 +28,4 @@ xr_snow_acc_control_2000q4_coords = xr_snow_acc_control_2000q4.coords.get("XLONG
 print(xr)
 #print(xr_snow_acc_control_2000q4)
 
-
-# Try opening up and reading XLONG, because it has south-north?as
+# Try opening up and reading XLONG, because it has south-north?
