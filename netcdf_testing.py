@@ -29,4 +29,4 @@ print(xr)
 #print(xr_snow_acc_control_2000q4)
 
 
-# Try opening up and reading XLONG, because it has south-north?
+# Try opening up and reading XLONG, because it has south-north?as
