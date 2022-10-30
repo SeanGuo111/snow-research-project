@@ -7,7 +7,25 @@ import pandas as pd
 from matplotlib import pyplot as plt
 #from sklearn.linear_model
 
+def format_iowa_real_data(data: pd.DataFrame):
+    """Returns the formatted real_data.\n -Makes day of type datetime64 and the index, keeps day as column.\n """
+    # Station correct dtypes
+    data["station"]: pd.Series = data["station"].astype("string")
+    data["station_name"]: pd.Series = data["station_name"].astype("string")
 
+    # Day, Year, Month correct dtypes. Day -> Index
+    data["day"] = pd.to_datetime(data["day"])
+    data.set_index("day", drop=False, inplace=True)
+    data["year"] = data["day"].dt.year.astype('int32')
+    data["month"] = data["day"].dt.month.astype('int32')
+
+    # Snow -> int64, Ms -> nan, Precip -> Nan where estimated
+    # "int32" is int, "int64" is long, "int" lets python decide
+    data["snow"] = data["snow"].replace("M", np.nan).astype('float64')
+    data["precip"].mask(data["precip_estimated"] == True, nan, inplace=True)
+    # Also works: data["precip"] = np.where(data["precip_estimated"] == True, nan, data["precip"])
+
+    return data
 
 # IMPORT DATA ---------------------------------------------------------
 data_dict = di.import_all_data()
@@ -15,19 +33,9 @@ breck_data = data_dict["breck_data"]
 leadville_data = data_dict["leadville_data"]
 
 
-# IMPORT DATA ---------------------------------------------------------
-breck_data.set_index("day", drop=False, inplace=True)
-leadville_data.set_index("day", drop=False, inplace=True)
-
-# Breck preparations ---
-# Set year column
-breck_data['year'] = breck_data['day'].str.slice(0, 4)
-breck_data['year'] = breck_data['year'].astype('int32')
-# Missing Snow -> Nan
-breck_data["snow"] = breck_data["snow"].replace("M", np.nan)
-# Correct types
-breck_data["snow"] = breck_data["snow"].astype('float32')
-breck_data["precip"] = breck_data["precip"].astype('float32')
+# PREPARE DATA ---------------------------------------------------------
+breck_data = format_iowa_real_data(breck_data)
+leadville_data = format_iowa_real_data(leadville_data)
 
 print(breck_data)
 
@@ -40,13 +48,13 @@ end_year = 2020
 
 
 # Plot Precip
-#func.all_precip(breck_data)
+func.all_precip(breck_data)
 
 # Plot snowfall
-#func.all_snowfall(breck_data)
+func.all_snowfall(breck_data)
 
 # Max snowfall events for each year, and average
-#func.largest_and_average_snowfall_events(breck_data, start_year, end_year)
+func.largest_and_average_snowfall_events(breck_data, start_year, end_year)
 
 # Average SWR for each year
 func.average_snow_water_ratio(breck_data, start_year, end_year)

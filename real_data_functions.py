@@ -1,5 +1,3 @@
-from calendar import formatstring
-import data_importing as di
 
 from cmath import nan
 import numpy as np
@@ -16,9 +14,8 @@ def basic_plot(x_axis, y_axis, x_label=None, y_label=None, title=None, color=Non
 
 def all_precip(data: pd.DataFrame):
     """Takes data and graphs all precip data.\n\nThe data has to have year and precip columns."""
-    exact_precip_data = data[(data["precip_estimated"] == False) ]
-    exact_precip = exact_precip_data["precip"]
-    years_axis = exact_precip_data["year"]
+    exact_precip = data["precip"]
+    years_axis = data["year"]
     
     basic_plot(years_axis, exact_precip, "Year", "Exact Melted Precip (in)", "All Exact Melted Precip")
     plt.show()
@@ -27,7 +24,6 @@ def all_precip(data: pd.DataFrame):
 def all_snowfall(data: pd.DataFrame):
     """Takes data and graphs all precip data.\n\nThe data has to have year and snowfall columns."""
     exact_snow = data["snow"]
-    exact_snow = exact_snow.replace("M", np.nan)
     years_axis = data["year"]
 
     basic_plot(years_axis, exact_snow, "Year", "Snow (in)", "All Snowfall")
@@ -53,6 +49,7 @@ def largest_and_average_snowfall_events(data: pd.DataFrame, start_year, end_year
 
     plt.plot(years_axis, average_axis, label = "Average Snowfall (in)", color = "r")
     plt.scatter(years_axis, max_axis, label = "Max Snowfall (in)", color="r")
+    plt.title("Max and Average Snowfall Events")
     plt.xlim(start_year, end_year)
     plt.ylim(0, np.max(max_axis) + 1)
     plt.fill_between(years_axis, 0, average_axis, color="r", alpha = 0.5)
@@ -92,7 +89,6 @@ def average_snow_water_ratio(data: pd.DataFrame, start_year, end_year):
     for y in range(start_year, end_year + 1):
         #Setup current year data
         current_year_data = data[data["year"] == y]
-        current_year_data["snow"] = current_year_data["snow"].replace("M", np.nan)
 
         # Conditions
         swr_availability = (current_year_data["snow"] > 0) & (current_year_data["precip"] > 0) & (current_year_data["precip_estimated"] == False) & (current_year_data["highc"] < 2)
