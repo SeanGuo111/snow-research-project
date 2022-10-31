@@ -3,6 +3,22 @@ from cmath import nan
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from sklearn.linear_model import LinearRegression
+import statsmodels.api as sm
+
+def linreg(x_axis, y_axis):
+    X = np.array(x_axis).reshape(-1,1)
+    y = np.array(y_axis).reshape(-1,1)
+    reg = LinearRegression()
+    reg.fit(X, y)
+    print("The linear model is: Y = {:.5} + {:.5}X".format(reg.intercept_[0], reg.coef_[0][0]))
+    plt.plot(x_axis, reg.predict(X), c='blue', linewidth=2)
+
+    X2 = sm.add_constant(X)
+    est = sm.OLS(y, X2)
+    est2 = est.fit()
+    print(est2.summary())
+
 
 def basic_plot(x_axis, y_axis, x_label=None, y_label=None, title=None, color=None, marker=None, line_style=None):
     """Returns a basic graph. Does not include features such as x/y lims and shading. Legend label is the same as the y label."""
@@ -61,7 +77,7 @@ def largest_and_average_snowfall_events(data: pd.DataFrame, start_winter, end_wi
     plt.show()
 
 def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter, end_winter, x):
-    """Takes data and graphs the average snowfall of the x largest events from each winter.\n\nThe data has to have winter_year and snow columns, and year index."""
+    """Takes data and graphs the average snowfall of the x largest events from each winter. Fits a line.\n\nThe data has to have winter_year and snow columns, and year index."""
     years_axis = np.arange(start_winter, end_winter + 1)
     average_axis = []
 
@@ -78,6 +94,10 @@ def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter, end_wint
         
         average_axis.append(max_total / x)
 
+    # Fit a line
+    linreg(years_axis, average_axis)
+
+    # Testing
     title = f"Average {x}-Largest Snowfall Events from {start_winter}-{end_winter}"
     basic_plot(years_axis, average_axis, "Year", f"Average of {x}-Largest Snowfall Events (in)", title, "r", "o", "")
     plt.xlim(start_winter, end_winter)

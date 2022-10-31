@@ -79,9 +79,9 @@ end_winter = 2020
 #func.average_snow_water_ratio(breck_data, start_winter, end_winter)
 
 # Largest x-event average
-x = 10
-#func.x_largest_snowfall_events_average(breck_data, start_winter, end_winter, x)
+x = 15
+func.x_largest_snowfall_events_average(breck_data, start_winter, end_winter, x)
 
 # Days of snow (threshold for snow to count)
 threshold = 0
-func.days_with_snow(breck_data, start_winter, end_winter, threshold)
+#func.days_with_snow(breck_data, start_winter, end_winter, threshold)
