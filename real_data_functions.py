@@ -30,102 +30,104 @@ def all_snowfall(data: pd.DataFrame):
     plt.show()
 
 
-def largest_and_average_snowfall_events(data: pd.DataFrame, start_year, end_year):
-    """Takes data and graphs the largest snowfall event from each year.\n\nThe data has to have year and snow columns."""
+def largest_and_average_snowfall_events(data: pd.DataFrame, start_winter, end_winter):
+    """Takes data and graphs the largest snowfall event from each winter.\n\nThe data has to have winter_year and snow columns."""
     # SEE IF THIS CAN BE CLEANED
-    years_axis = np.arange(start_year, end_year + 1)
+    years_axis = np.arange(start_winter, end_winter + 1)
     max_axis = []
     average_axis = []
 
-    for y in range(start_year, end_year + 1):
-        current_year_data = data[data["year"] == y]
-        current_year_snowfall = current_year_data["snow"]
+    for y in range(start_winter, end_winter + 1):
+        current_winter_data = data[data["winter_year"] == y]
+        #years_axis.append(current_winter_data["winter_label"].iloc[0])
+        current_winter_snowfall = current_winter_data["snow"]
         
-        max = current_year_snowfall.max()
-        average = current_year_snowfall.replace(0.0, np.nan).mean()
+        max = current_winter_snowfall.max()
+        average = current_winter_snowfall.replace(0.0, np.nan).mean()
 
         max_axis.append(max)
         average_axis.append(average)
 
-    plt.plot(years_axis, average_axis, label = "Average Snowfall (in)", color = "r")
+    plt.plot(years_axis, average_axis, label = "Average Snowfall (in)", color="b")
     plt.scatter(years_axis, max_axis, label = "Max Snowfall (in)", color="r")
-    plt.title("Max and Average Snowfall Events")
-    plt.xlim(start_year, end_year)
+    plt.title(f"Snowfall Events from Winters of {start_winter}-{end_winter}")
+    plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(max_axis) + 1)
-    plt.fill_between(years_axis, 0, average_axis, color="r", alpha = 0.5)
+    plt.xlabel("Year")
+    plt.ylabel("Snowfall (in)")
+    plt.fill_between(years_axis, 0, average_axis, color="b", alpha = 0.5)
+
     plt.legend()
     plt.show()
 
-def x_largest_snowfall_events_average(data: pd.DataFrame, start_year, end_year, x):
-    """Takes data and graphs the average snowfall of the x largest events from each year.\n\nThe data has to have year and snow columns, and year index."""
-    years_axis = np.arange(start_year, end_year + 1)
+def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter, end_winter, x):
+    """Takes data and graphs the average snowfall of the x largest events from each winter.\n\nThe data has to have winter_year and snow columns, and year index."""
+    years_axis = np.arange(start_winter, end_winter + 1)
     average_axis = []
 
-    for y in range(start_year, end_year + 1):
-        current_year_data = data[data["year"] == y]
-        current_year_snowfall = current_year_data["snow"]
+    for y in range(start_winter, end_winter + 1):
+        current_winter_data = data[data["winter_year"] == y]
+        current_winter_snowfall = current_winter_data["snow"]
         max_total = 0
 
         for i in range(x):
-            current_max_index = current_year_snowfall.idxmax() # index is a year so loc. if it was an integer, than it would be iloc.
-            max_total += current_year_snowfall.loc[current_max_index]
-            current_year_excluded = current_year_snowfall.drop(current_max_index, inplace=False)
-            current_year_snowfall = current_year_excluded
+            current_max_index = current_winter_snowfall.idxmax() # index is a label (year) so loc. if it was an integer, than it would be iloc.
+            max_total += current_winter_snowfall.loc[current_max_index]
+            current_winter_excluded = current_winter_snowfall.drop(current_max_index, inplace=False)
+            current_winter_snowfall = current_winter_excluded
         
         average_axis.append(max_total / x)
 
-    title = f"Average {x}-Largest Snowfall Events from {start_year}-{end_year}"
-    basic_plot(years_axis, average_axis, "Year", f"Average of {x}-Largest Snowfall Events", title, "r", "o", "")
-    plt.xlim(start_year, end_year)
+    title = f"Average {x}-Largest Snowfall Events from {start_winter}-{end_winter}"
+    basic_plot(years_axis, average_axis, "Year", f"Average of {x}-Largest Snowfall Events (in)", title, "r", "o", "")
+    plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(average_axis) + 1)
     plt.show()
 
 # SWE vs SWR?
-def average_snow_water_ratio(data: pd.DataFrame, start_year, end_year):
-    """Takes data and graphs the bulk average snow-water ratio from each year.\n\nThe data has to have year, snow, and precip columns."""
-    years_axis = np.arange(start_year, end_year + 1)
+def average_snow_water_ratio(data: pd.DataFrame, start_winter, end_winter):
+    """Takes data and graphs the bulk average snow-water ratio from each winter.\n\nThe data has to have winter_year, snow, and precip columns."""
+    years_axis = np.arange(start_winter, end_winter + 1)
     average_axis = []
 
-    for y in range(start_year, end_year + 1):
+    for y in range(start_winter, end_winter + 1):
         #Setup current year data
-        current_year_data = data[data["year"] == y]
+        current_winter_data = data[data["winter_year"] == y]
 
         # Conditions
-        swr_availability = (current_year_data["snow"] > 0) & (current_year_data["precip"] > 0) & (current_year_data["precip_estimated"] == False) & (current_year_data["highc"] < 2)
-        current_year_swr_available = current_year_data[swr_availability]
+        swr_availability = (current_winter_data["snow"] > 0) & (current_winter_data["precip"] > 0) & (current_winter_data["precip_estimated"] == False) & (current_winter_data["highc"] < 2)
+        current_winter_swr_available = current_winter_data[swr_availability]
 
         # Calculation
-        snow_sum_array = np.sum(np.array(current_year_swr_available["snow"]))
-        precip_sum_array = np.sum(np.array(current_year_swr_available["precip"]))
-        SWR_average_array = snow_sum_array / precip_sum_array
-        # try bulk: summing all snow
-        if (y == 1982):
-            print("s")
+        snow_sum = np.sum(np.array(current_winter_swr_available["snow"]))
+        precip_sum = np.sum(np.array(current_winter_swr_available["precip"]))
+        SWR_average = snow_sum / precip_sum
 
-        average_axis.append(SWR_average_array)
+        average_axis.append(SWR_average)
 
-    title = f"Average Snow Water Ratio from {start_year}-{end_year}"
+    title = f"Average Snow Water Ratio from {start_winter}-{end_winter}"
     basic_plot(years_axis, average_axis, "Year", "Average Snow-Water Ratio", title, "y", line_style="-")
-    plt.xlim(start_year, end_year)
+    plt.xlim(start_winter, end_winter)
+    plt.ylim(bottom=0)
     plt.fill_between(years_axis, 0, average_axis, color="yellow", alpha = 0.5)
     plt.show()
 
-def days_with_snow(data: pd.DataFrame, start_year, end_year):
+def days_with_snow(data: pd.DataFrame, start_winter, end_winter, threshold):
     """Takes data and graphs the total number of days with snow each year.\n\nThe data has to have year and snow columns."""
 
-    years_axis = np.arange(start_year, end_year + 1)
+    years_axis = np.arange(start_winter, end_winter + 1)
     days_axis = []
 
-    for y in range(start_year, end_year + 1):
-        current_year_data = data[data["year"] == y]
-        current_year_snow_days = current_year_data[current_year_data["snow"] > 0]
-        days_axis.append(len(current_year_snow_days))
+    for y in range(start_winter, end_winter + 1):
+        current_winter_data = data[data["winter_year"] == y]
+        current_winter_snow_days = current_winter_data[current_winter_data["snow"] > threshold]
+        days_axis.append(len(current_winter_snow_days))
 
-    title = f"Number of Snow days each year from {start_year}-{end_year}"
+    title = f"Number of Snow days each Winter from {start_winter}-{end_winter}"
     basic_plot(years_axis, days_axis, "Year", "Number of Snowfall Days", title, "m", "o", "")
     plt.plot(years_axis, days_axis, "mo")
-    plt.xlim(start_year, end_year)
-    plt.ylim(0, 150)
+    plt.xlim(start_winter, end_winter)
+    plt.ylim(bottom=0)
     plt.show()
 
 
