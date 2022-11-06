@@ -6,13 +6,20 @@ from matplotlib import pyplot as plt
 from sklearn.linear_model import LinearRegression
 import statsmodels.api as sm
 
-def linreg(x_axis, y_axis):
+# UTILITY ------------------------------------------------------------------------------------------------------------------
+def linreg(x_axis, y_axis, title, color):
+    """Fits on a line from x and y axises, name, and color. Plots and displays equation and relevant statistics."""
     X = np.array(x_axis).reshape(-1,1)
     y = np.array(y_axis).reshape(-1,1)
     reg = LinearRegression()
     reg.fit(X, y)
+
+    print()
+    print(f"---{title}---")
     print("The linear model is: Y = {:.5} + {:.5}X".format(reg.intercept_[0], reg.coef_[0][0]))
-    plt.plot(x_axis, reg.predict(X), c='blue', linewidth=2)
+    slope_over_timeframe = reg.coef_[0][0] * (len(y) - 1)
+    print(f"The slope over the timeframe is {slope_over_timeframe}")
+    plt.plot(x_axis, reg.predict(X), c=color, linewidth=2)
 
     X2 = sm.add_constant(X)
     est = sm.OLS(y, X2)
@@ -28,6 +35,7 @@ def basic_plot(x_axis, y_axis, x_label=None, y_label=None, title=None, color=Non
     plt.title(title)
     plt.legend()
 
+# FUNCTIONS ------------------------------------------------------------------------------------------------------------------
 def all_precip(data: pd.DataFrame):
     """Takes data and graphs all precip data.\n\nThe data has to have year and precip columns."""
     exact_precip = data["precip"]
@@ -45,39 +53,64 @@ def all_snowfall(data: pd.DataFrame):
     basic_plot(years_axis, exact_snow, "Year", "Snow (in)", "All Snowfall")
     plt.show()
 
+def average_temperature(data: pd.DataFrame, start_winter, end_winter):
+    """Takes data and graphs the average, average temperature from each winter.\n\nThe data has to have winter_year, highc, and lowc columns."""
+    years_axis = np.arange(start_winter, end_winter + 1)
+    average_axis = []
+
+    for y in range(start_winter, end_winter + 1):
+        if (y == 2020):
+            print("sdf")
+        current_winter_data = data[data["winter_year"] == y]
+        current_winter_lows = current_winter_data["lowc"]
+        current_winter_highs = current_winter_data["highc"]
+        
+
+        average_temp_by_day = (current_winter_lows + current_winter_highs) / 2
+        average_temp_winter = np.average(average_temp_by_day)
+
+        average_axis.append(average_temp_winter)
+    
+    title = f"Average Temperature from Winters of {start_winter}-{end_winter}"
+    linreg(years_axis, average_axis, title, "green")
+    basic_plot(years_axis, average_axis, "Year", "Average Temperature (C)", title, "purple", "o", line_style="")
+    plt.xlim(start_winter, end_winter)
+    plt.ylim(0, np.max(average_axis) + 1)
+    plt.show()
 
 def largest_and_average_snowfall_events(data: pd.DataFrame, start_winter, end_winter):
     """Takes data and graphs the largest snowfall event from each winter.\n\nThe data has to have winter_year and snow columns."""
     # SEE IF THIS CAN BE CLEANED
     years_axis = np.arange(start_winter, end_winter + 1)
-    max_axis = []
+    largest_axis = []
     average_axis = []
 
     for y in range(start_winter, end_winter + 1):
         current_winter_data = data[data["winter_year"] == y]
-        #years_axis.append(current_winter_data["winter_label"].iloc[0])
         current_winter_snowfall = current_winter_data["snow"]
         
         max = current_winter_snowfall.max()
         average = current_winter_snowfall.replace(0.0, np.nan).mean()
 
-        max_axis.append(max)
+        largest_axis.append(max)
         average_axis.append(average)
-
-    plt.plot(years_axis, average_axis, label = "Average Snowfall (in)", color="b")
-    plt.scatter(years_axis, max_axis, label = "Max Snowfall (in)", color="r")
-    plt.title(f"Snowfall Events from Winters of {start_winter}-{end_winter}")
+    
+    title = f"Average Snowfall Events from Winters of {start_winter}-{end_winter}"
+    linreg(years_axis, average_axis, title, "green")
+    basic_plot(years_axis, average_axis, "Year", "Average Snowfall (in)", title, "b", "o", line_style="")
     plt.xlim(start_winter, end_winter)
-    plt.ylim(0, np.max(max_axis) + 1)
-    plt.xlabel("Year")
-    plt.ylabel("Snowfall (in)")
-    plt.fill_between(years_axis, 0, average_axis, color="b", alpha = 0.5)
-
-    plt.legend()
+    plt.ylim(0, np.max(average_axis) + 1)
+    plt.show()
+    
+    title = f"Largest Snowfall Events from Winters of {start_winter}-{end_winter}"
+    linreg(years_axis, largest_axis, title, "blue")
+    basic_plot(years_axis, largest_axis, "Year", "Largest Snowfall (in)", title, "r", "o", line_style="")
+    plt.xlim(start_winter, end_winter)
+    plt.ylim(0, np.max(largest_axis) + 1)
     plt.show()
 
 def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter, end_winter, x):
-    """Takes data and graphs the average snowfall of the x largest events from each winter. Fits a line.\n\nThe data has to have winter_year and snow columns, and year index."""
+    """Takes data and graphs the average snowfall of the x largest events from each winter. Fits a line.\n\nThe data has to have winter_year and snow columns."""
     years_axis = np.arange(start_winter, end_winter + 1)
     average_axis = []
 
@@ -94,19 +127,49 @@ def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter, end_wint
         
         average_axis.append(max_total / x)
 
-    # Fit a line
-    linreg(years_axis, average_axis)
-
+ 
     # Testing
     title = f"Average {x}-Largest Snowfall Events from {start_winter}-{end_winter}"
+    linreg(years_axis, average_axis, title, "blue")
     basic_plot(years_axis, average_axis, "Year", f"Average of {x}-Largest Snowfall Events (in)", title, "r", "o", "")
     plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(average_axis) + 1)
     plt.show()
 
-# SWE vs SWR?
-def average_snow_water_ratio(data: pd.DataFrame, start_winter, end_winter):
-    """Takes data and graphs the bulk average snow-water ratio from each winter.\n\nThe data has to have winter_year, snow, and precip columns."""
+def percentile_largest_snowfall_events_average(data: pd.DataFrame, start_winter, end_winter, percentile):
+    """Takes data and graphs the average snowfall for a percentile of largest events for that winter. Fits a line.\n\nThe data has to have winter_year and snow columns."""
+    years_axis = np.arange(start_winter, end_winter + 1)
+    average_axis = []
+
+    for y in range(start_winter, end_winter + 1):
+        current_winter_data = data[data["winter_year"] == y]
+        current_winter_snowfall = current_winter_data["snow"]
+
+        snow_days_length = len(current_winter_snowfall[current_winter_snowfall > 0])
+        amount_highest_winters = (int) (np.floor(snow_days_length * (percentile / 100)))
+       
+        max_total = 0
+
+        for i in range(amount_highest_winters):
+            current_max_index = current_winter_snowfall.idxmax() # index is a label (year) so loc. if it was an integer, than it would be iloc.
+            max_total += current_winter_snowfall.loc[current_max_index]
+            current_winter_excluded = current_winter_snowfall.drop(current_max_index, inplace=False)
+            current_winter_snowfall = current_winter_excluded
+        
+        average_axis.append(max_total / amount_highest_winters)
+
+ 
+    # Testing
+    title = f"Average {percentile}th-Percentile Snowfall Events from {start_winter}-{end_winter}"
+    linreg(years_axis, average_axis, title, "blue")
+    basic_plot(years_axis, average_axis, "Year", f"Average of {percentile}%-Largest Snowfall Events (in)", title, "r", "o", "")
+    plt.xlim(start_winter, end_winter)
+    plt.ylim(0, np.max(average_axis) + 1)
+    plt.show()
+
+
+def season_total_snow_water_ratio(data: pd.DataFrame, start_winter, end_winter):
+    """Takes data and graphs the season total (bulk) snow-water ratio from each winter.\n\nThe data has to have winter_year, snow, and precip columns."""
     years_axis = np.arange(start_winter, end_winter + 1)
     average_axis = []
 
@@ -125,14 +188,15 @@ def average_snow_water_ratio(data: pd.DataFrame, start_winter, end_winter):
 
         average_axis.append(SWR_average)
 
-    title = f"Average Snow Water Ratio from {start_winter}-{end_winter}"
-    basic_plot(years_axis, average_axis, "Year", "Average Snow-Water Ratio", title, "y", line_style="-")
+    title = f"Season Total Snow Water Ratio from {start_winter}-{end_winter}"
+    linreg(years_axis, average_axis, title, "purple")
+    basic_plot(years_axis, average_axis, "Year", "Season Total Snow-Water Ratio", title, "y", "o", line_style="")
     plt.xlim(start_winter, end_winter)
     plt.ylim(bottom=0)
-    plt.fill_between(years_axis, 0, average_axis, color="yellow", alpha = 0.5)
+    #plt.fill_between(years_axis, 0, average_axis, color="yellow", alpha = 0.5)
     plt.show()
 
-def days_with_snow(data: pd.DataFrame, start_winter, end_winter, threshold):
+def days_with_snow(data: pd.DataFrame, start_winter, end_winter):
     """Takes data and graphs the total number of days with snow each year.\n\nThe data has to have year and snow columns."""
 
     years_axis = np.arange(start_winter, end_winter + 1)
@@ -140,12 +204,12 @@ def days_with_snow(data: pd.DataFrame, start_winter, end_winter, threshold):
 
     for y in range(start_winter, end_winter + 1):
         current_winter_data = data[data["winter_year"] == y]
-        current_winter_snow_days = current_winter_data[current_winter_data["snow"] > threshold]
+        current_winter_snow_days = current_winter_data[current_winter_data["snow"] > 0]
         days_axis.append(len(current_winter_snow_days))
 
     title = f"Number of Snow days each Winter from {start_winter}-{end_winter}"
-    basic_plot(years_axis, days_axis, "Year", "Number of Snowfall Days", title, "m", "o", "")
-    plt.plot(years_axis, days_axis, "mo")
+    linreg(years_axis, days_axis, title, "green")
+    basic_plot(years_axis, days_axis, "Year", "Number of Snowfall Days", title, "cornflowerblue", "o", "")
     plt.xlim(start_winter, end_winter)
     plt.ylim(bottom=0)
     plt.show()
