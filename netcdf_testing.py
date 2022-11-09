@@ -1,4 +1,4 @@
-import data_importing as di
+import data_preparing as di
 
 import numpy as np
 import pandas as pd
