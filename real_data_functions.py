@@ -43,6 +43,7 @@ def all_functions(data: pd.DataFrame, start_winter, end_winter, x = 10, percenta
     """Default percentage-largest snowfall: 20%"""
     """Default swr inclusion of estimated precip"""
 
+    check_days(data)
     all_precip(data)
     all_snowfall(data)
     average_temperature(data, start_winter, end_winter)
@@ -52,6 +53,21 @@ def all_functions(data: pd.DataFrame, start_winter, end_winter, x = 10, percenta
     percentage_largest_snowfall_events_average(data, start_winter, end_winter, percentage)
     season_total_snow_water_ratio(data, start_winter, end_winter, swr_include_estimated_precip)
     average_days_with_snow(data, start_winter, end_winter)
+
+
+def check_days(data: pd.DataFrame):
+    """Checks that the data includes all days. Printed number should be close to 365.25"""
+    first_year = data.iloc[0]["year"]
+    last_year = data.iloc[len(data) - 1]["year"]
+    print(len(data) / (last_year - first_year + 1))
+
+    years_axis = np.arange(first_year, last_year + 1)
+    days_axis = []
+    for year in range(first_year, last_year + 1):
+        days_axis.append(len(data[data["year"] == year]))
+
+    plt.scatter(years_axis, days_axis)
+    plt.show()
 
 
 def all_precip(data: pd.DataFrame):
@@ -75,7 +91,6 @@ def average_temperature(data: pd.DataFrame, start_winter, end_winter):
     """Takes data and graphs the average, average temperature from each winter.\n\nThe data has to have winter_year, highc, and lowc columns."""
     years_axis = np.arange(start_winter, end_winter + 1)
     average_axis = []
-    number_of_days = []
 
     for y in range(start_winter, end_winter + 1):
         if (y == 2020):
