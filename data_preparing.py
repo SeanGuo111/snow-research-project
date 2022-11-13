@@ -28,6 +28,9 @@ def import_all_data():
     leadville_file_name = "Leadville 2SW Iowa Dataset.txt"
     data_dict["leadville_data"] = import_from_source(leadville_file_name, "txt")
 
+    telluride_file_name = "Telluride Iowa Dataset.txt"
+    data_dict["telluride_data"] = import_from_source(telluride_file_name, "txt")
+
     constants_file_name = "RALconus4km_wrf_constants.nc"
     data_dict["constants"] = import_from_source(constants_file_name, "nc")
 
@@ -46,9 +49,15 @@ def date_to_winter(date: datetime):
 
 
 def format_iowa_real_data(data: pd.DataFrame, include_estimated_M_temp: bool = False, include_estimated_M_precip: bool = False):
-    """Returns the formatted real_data. Disregards all data less than 0.01 as inaccuracy."""
+    """Returns the formatted real_data. Disregards all data less than 0.01 as inaccuracy. Missing flags automatically are casted to True (estimated)."""
     """Boolean variables to indicate whether or not to include data whose flag was true or missing."""
     """Index is the year of the END of the winter season; for example, 1948 would represent the winter of 1947-1948."""
+   
+     # Flag correct dtypes, technically still object dtype, but the values are all bool.
+    data["temp_estimated"] = flag_to_bool(data["temp_estimated"])
+    data["precip_estimated"] = flag_to_bool(data["precip_estimated"])
+
+    # Replace rest of the missing values
     data.replace({"M": np.nan}, inplace=True)
 
     # Station correct dtypes
@@ -68,7 +77,6 @@ def format_iowa_real_data(data: pd.DataFrame, include_estimated_M_temp: bool = F
     data["winter_label"] = winter_column
     data["winter_year"] = data["winter_label"].str.slice(5, 10).astype('int32')
 
-
     # Snow -> float64
     # "int32" is int, "int64" is long, "int" lets python decide
     data["snow"] = data["snow"].astype('float64')
@@ -85,4 +93,11 @@ def format_iowa_real_data(data: pd.DataFrame, include_estimated_M_temp: bool = F
         data["lowc"] = np.where(data["temp_estimated"] == False, data["lowc"], np.nan)
 
     return data
-    
+
+def flag_to_bool(input: pd.Series):
+    """Converts series of flags with Ms and T/Fs into a boolean series."""
+    input = input.astype("string")
+    input.replace({"M": "True"}, inplace=True)
+    bool_flag = pd.Series(True, index=input.index)
+    bool_flag = np.where(input == "True", True, False)
+    return bool_flag

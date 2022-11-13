@@ -25,7 +25,7 @@ print(breck_data)
 # First full winter from 1948
 start_winter = 1948
 end_winter = 2020
-
+include_estimated_precip = False
 
 # Plot Precip
 #func.all_precip(breck_data)
@@ -40,7 +40,7 @@ func.average_temperature(breck_data, start_winter, end_winter)
 func.largest_and_average_snowfall_events(breck_data, start_winter, end_winter)
 
 # Average SWR for each year
-func.season_total_snow_water_ratio(breck_data, start_winter, end_winter)
+func.season_total_snow_water_ratio(breck_data, start_winter, end_winter, include_estimated_precip = False)
 
 # Largest x-event average
 x = 10
@@ -48,7 +48,7 @@ func.x_largest_snowfall_events_average(breck_data, start_winter, end_winter, x)
 
 # Percentile event average
 max_percentile = 20
-func.percentile_largest_snowfall_events_average(breck_data, start_winter, end_winter, max_percentile)
+func.percentage_largest_snowfall_events_average(breck_data, start_winter, end_winter, max_percentile)
 
 # Days of snow (threshold for snow to count)
-func.days_with_snow(breck_data, start_winter, end_winter)
+func.average_days_with_snow(breck_data, start_winter, end_winter)
