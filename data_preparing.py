@@ -8,11 +8,12 @@ import netCDF4 as nc
 def import_from_source(file_name: str, file_type: str):
     """Imports a single source. If csv txt file, as a pandas Dataframe. If .nc file, as a netCDF4 dataset."""
     
-    directory_path = "C:\\Users\\swguo\\VSCode Projects\\Snow Research\\"
     if (file_type == "txt"):
+        directory_path = "C:\\Users\\swguo\\VSCode Projects\\Snow Research\\Real Data\\"
         data: pd.DataFrame = pd.read_csv(directory_path + file_name, comment="#")
         return data
     elif (file_type == "nc"):
+        directory_path = "C:\\Users\\swguo\\VSCode Projects\\Snow Research\\"
         data = nc.Dataset(directory_path + file_name)
         return data
 
