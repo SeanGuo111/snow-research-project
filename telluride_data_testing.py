@@ -2,7 +2,7 @@ import data_preparing as dp
 import real_data_functions as func
 
 # IMPORT DATA ---------------------------------------------------------
-telluride_data = dp.import_from_source("Telluride Iowa Dataset.txt")
+telluride_data = dp.import_from_source("Telluride RD.txt")
 
 # PREPARE DATA ---------------------------------------------------------
 telluride_data = dp.format_iowa_real_data(telluride_data, include_estimated_M_temp=True, include_estimated_M_precip=True)

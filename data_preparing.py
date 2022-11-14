@@ -24,13 +24,13 @@ def import_all_data():
     """Imports all data, returned as a dictionary"""
     data_dict = {}
 
-    breck_file_name = "Breckenridge Iowa Dataset.txt"
+    breck_file_name = "Breckenridge RD.txt"
     data_dict["breck_data"] = import_from_source(breck_file_name)
 
-    leadville_file_name = "Leadville 2SW Iowa Dataset.txt"
+    leadville_file_name = "Leadville 2SW RD.txt"
     data_dict["leadville_data"] = import_from_source(leadville_file_name)
 
-    telluride_file_name = "Telluride Iowa Dataset.txt"
+    telluride_file_name = "Telluride RD.txt"
     data_dict["telluride_data"] = import_from_source(telluride_file_name)
 
     constants_file_name = "RALconus4km_wrf_constants.nc"
