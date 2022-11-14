@@ -5,38 +5,39 @@ from datetime import date, datetime
 import netCDF4 as nc
 
 # IMPORTING --------------------------------------------------------------------------------------------------------------------------
-def import_from_source(file_name: str, file_type: str):
-    """Imports a single source. If csv txt file, as a pandas Dataframe. If .nc file, as a netCDF4 dataset."""
+def import_from_source(file_name: str):
+    """Imports a single source. If csv txt file, as a pandas Dataframe. If .nc file, as a netCDF4 dataset. Include filetype in name."""
     
-    if (file_type == "txt"):
+    if (file_name[-3:] == "txt"):
         directory_path = "C:\\Users\\swguo\\VSCode Projects\\Snow Research\\Real Data\\"
         data: pd.DataFrame = pd.read_csv(directory_path + file_name, comment="#")
         return data
-    elif (file_type == "nc"):
+    elif (file_name[-2:] == "nc"):
         directory_path = "C:\\Users\\swguo\\VSCode Projects\\Snow Research\\"
         data = nc.Dataset(directory_path + file_name)
         return data
 
+    return "Bad File Type"
 
-
+# Shouldn't need this at the moment.
 def import_all_data():
     """Imports all data, returned as a dictionary"""
     data_dict = {}
 
     breck_file_name = "Breckenridge Iowa Dataset.txt"
-    data_dict["breck_data"] = import_from_source(breck_file_name, "txt")
+    data_dict["breck_data"] = import_from_source(breck_file_name)
 
     leadville_file_name = "Leadville 2SW Iowa Dataset.txt"
-    data_dict["leadville_data"] = import_from_source(leadville_file_name, "txt")
+    data_dict["leadville_data"] = import_from_source(leadville_file_name)
 
     telluride_file_name = "Telluride Iowa Dataset.txt"
-    data_dict["telluride_data"] = import_from_source(telluride_file_name, "txt")
+    data_dict["telluride_data"] = import_from_source(telluride_file_name)
 
     constants_file_name = "RALconus4km_wrf_constants.nc"
-    data_dict["constants"] = import_from_source(constants_file_name, "nc")
+    data_dict["constants"] = import_from_source(constants_file_name)
 
     snow_acc_control_2000q4_file_name = "wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc"
-    data_dict["snow_acc_control_2000q4"] = import_from_source(snow_acc_control_2000q4_file_name, "nc")
+    data_dict["snow_acc_control_2000q4"] = import_from_source(snow_acc_control_2000q4_file_name)
 
     return data_dict
 

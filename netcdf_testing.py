@@ -1,4 +1,4 @@
-import data_preparing as di
+import data_preparing as dp
 
 import numpy as np
 import pandas as pd
@@ -6,9 +6,9 @@ from matplotlib import pyplot as plt
 import netCDF4 as nc
 import xarray as xr 
 
-all_data = di.import_all_data()
-constants = all_data["constants"]
-snow_acc_control_2000q4 = all_data["snow_acc_control_2000q4"]
+constants = dp.import_from_source("RALconus4km_wrf_constants.nc")
+snow_acc_control_2000q4 = dp.import_from_source("wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc")
+
 
 # BASIC NETCDF4 PACKAGE
 # This shows metadata
