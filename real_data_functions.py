@@ -8,7 +8,7 @@ import statsmodels.api as sm
 
 # UTILITY ------------------------------------------------------------------------------------------------------------------
 def linreg(x_axis, y_axis, title, color):
-    """Fits on a line from x and y axises, name, and color. Plots and displays equation and relevant statistics."""
+    """Fits on a line from x and y axises, name, and color. Plots and displays equation and relevant statistics. Returns a dictionary of p-value and slope."""
     X = np.array(x_axis).reshape(-1,1)
     y = np.array(y_axis).reshape(-1,1)
     reg = LinearRegression()
@@ -22,9 +22,13 @@ def linreg(x_axis, y_axis, title, color):
     plt.plot(x_axis, reg.predict(X), c=color, linewidth=2)
 
     X2 = sm.add_constant(X)
-    est = sm.OLS(y, X2)
-    est2 = est.fit()
-    print(est2.summary())
+    est = sm.OLS(y, X2).fit()
+    print(est.summary())
+
+    dict = {}
+    dict["p-value"] = np.round(est.pvalues[1], 4)
+    dict["slope"] = np.round(slope_over_timeframe, 4)
+    return dict
 
 
 def basic_plot(x_axis, y_axis, x_label=None, y_label=None, title=None, color=None, marker=None, line_style=None):
@@ -36,16 +40,18 @@ def basic_plot(x_axis, y_axis, x_label=None, y_label=None, title=None, color=Non
     plt.legend()
 
 # FUNCTIONS ------------------------------------------------------------------------------------------------------------------
-def all_functions(data: pd.DataFrame, start_winter, end_winter, x = 10, percentage = 20, swr_include_estimated_precip = True):
+def all_functions(data: pd.DataFrame, start_winter, end_winter, x = 10, percentage = 20, swr_include_estimated_precip = True, check_and_all = False):
 
     """Call all functions."""
     """Default x-largest-snowfall: 10"""
     """Default percentage-largest snowfall: 20%"""
     """Default swr inclusion of estimated precip"""
 
-    check_days(data)
-    all_precip(data)
-    all_snowfall(data)
+    if check_and_all:
+        check_days(data)
+        all_precip(data)
+        all_snowfall(data)
+
     average_temperature(data, start_winter, end_winter)
     largest_and_average_snowfall_events(data, start_winter, end_winter)
 
@@ -105,11 +111,16 @@ def average_temperature(data: pd.DataFrame, start_winter, end_winter):
         average_axis.append(average_temp_winter)
     
     title = f"Average Temperature from Winters of {start_winter}-{end_winter}"
-    linreg(years_axis, average_axis, title, "green")
+    dict = linreg(years_axis, average_axis, title, "green")
     basic_plot(years_axis, average_axis, "Year", "Average Temperature (C)", title, "purple", "o", line_style="")
     plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(average_axis) + 1)
+    plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
+    plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
     plt.show()
+
+    return dict
+
 
 def largest_and_average_snowfall_events(data: pd.DataFrame, start_winter, end_winter):
     """Takes data and graphs the largest snowfall event from each winter.\n\nThe data has to have winter_year and snow columns."""
@@ -129,18 +140,25 @@ def largest_and_average_snowfall_events(data: pd.DataFrame, start_winter, end_wi
         average_axis.append(average)
     
     title = f"Average Snowfall Events from Winters of {start_winter}-{end_winter}"
-    linreg(years_axis, average_axis, title, "green")
+    dict_average = linreg(years_axis, average_axis, title, "green")
     basic_plot(years_axis, average_axis, "Year", "Average Snowfall (in)", title, "b", "o", line_style="")
     plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(average_axis) + 1)
+    plt.figtext(0.7, 0.20, f"p-value: {dict_average['p-value']}")
+    plt.figtext(0.7, 0.15, f"slope: {dict_average['slope']}")
     plt.show()
     
     title = f"Largest Snowfall Events from Winters of {start_winter}-{end_winter}"
-    linreg(years_axis, largest_axis, title, "blue")
+    dict_largest = linreg(years_axis, largest_axis, title, "blue")
     basic_plot(years_axis, largest_axis, "Year", "Largest Snowfall (in)", title, "r", "o", line_style="")
     plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(largest_axis) + 1)
+    plt.figtext(0.7, 0.20, f"p-value: {dict_largest['p-value']}")
+    plt.figtext(0.7, 0.15, f"slope: {dict_largest['slope']}")
     plt.show()
+
+    return dict_largest, dict_average
+
 
 def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter, end_winter, x):
     """Takes data and graphs the average snowfall of the x largest events from each winter. Fits a line.\n\nThe data has to have winter_year and snow columns."""
@@ -163,11 +181,16 @@ def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter, end_wint
  
     # Testing
     title = f"Average {x}-Largest Snowfall Events from {start_winter}-{end_winter}"
-    linreg(years_axis, average_axis, title, "blue")
+    dict = linreg(years_axis, average_axis, title, "blue")
     basic_plot(years_axis, average_axis, "Year", f"Average of {x}-Largest Snowfall Events (in)", title, "r", "o", "")
     plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(average_axis) + 1)
+    plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
+    plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
     plt.show()
+
+    return dict
+
 
 def percentage_largest_snowfall_events_average(data: pd.DataFrame, start_winter, end_winter, percentage):
     """Takes data and graphs the average snowfall for a percentile of largest events for that winter. Fits a line.\n\nThe data has to have winter_year and snow columns."""
@@ -194,11 +217,15 @@ def percentage_largest_snowfall_events_average(data: pd.DataFrame, start_winter,
  
     # Testing
     title = f"Average Top {percentage}% Snowfall Events from {start_winter}-{end_winter}"
-    linreg(years_axis, average_axis, title, "blue")
+    dict = linreg(years_axis, average_axis, title, "blue")
     basic_plot(years_axis, average_axis, "Year", f"Average of {percentage}%-Largest Snowfall Events (in)", title, "r", "o", "")
     plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(average_axis) + 1)
+    plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
+    plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
     plt.show()
+
+    return dict
 
 
 def season_total_snow_water_ratio(data: pd.DataFrame, start_winter, end_winter, include_estimated_precip: bool = True):
@@ -224,12 +251,16 @@ def season_total_snow_water_ratio(data: pd.DataFrame, start_winter, end_winter, 
         average_axis.append(SWR_average)
 
     title = f"Season Total Snow Water Ratio from {start_winter}-{end_winter}"
-    linreg(years_axis, average_axis, title, "purple")
+    dict = linreg(years_axis, average_axis, title, "purple")
     basic_plot(years_axis, average_axis, "Year", "Season Total Snow-Water Ratio", title, "y", "o", line_style="")
     plt.xlim(start_winter, end_winter)
     plt.ylim(bottom=0)
-    #plt.fill_between(years_axis, 0, average_axis, color="yellow", alpha = 0.5)
+    plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
+    plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
     plt.show()
+        
+    return dict
+
 
 def average_days_with_snow(data: pd.DataFrame, start_winter, end_winter):
     """Takes data and graphs the total number of days with snow each year.\n\nThe data has to have year and snow columns."""
@@ -243,10 +274,13 @@ def average_days_with_snow(data: pd.DataFrame, start_winter, end_winter):
         days_axis.append(len(current_winter_snow_days))
 
     title = f"Number of Snow days each Winter from {start_winter}-{end_winter}"
-    linreg(years_axis, days_axis, title, "green")
+    dict = linreg(years_axis, days_axis, title, "green")
     basic_plot(years_axis, days_axis, "Year", "Number of Snowfall Days", title, "cornflowerblue", "o", "")
+    plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
+    plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
     plt.xlim(start_winter, end_winter)
     plt.ylim(bottom=0)
     plt.show()
 
+    return dict
 
