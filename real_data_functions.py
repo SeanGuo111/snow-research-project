@@ -40,6 +40,8 @@ def basic_plot(x_axis, y_axis, x_label=None, y_label=None, title=None, color=Non
     plt.legend()
 
 # FUNCTIONS ------------------------------------------------------------------------------------------------------------------
+
+# "ALL" FUNCTIONS, CHECK DAYS ------------------------------------------------------------------------------------------------------------------
 def all_functions(data: pd.DataFrame, start_winter, end_winter, x = 10, percentage = 20, swr_include_estimated_precip = True, check_and_all = False):
 
     """Call all functions."""
@@ -75,6 +77,15 @@ def check_days(data: pd.DataFrame):
     plt.scatter(years_axis, days_axis)
     plt.show()
 
+def all_temp(data: pd.DataFrame):
+    """Takes data and graphs all average precip data.\n\nThe data has to have year and precip columns."""
+    exact_temp = (data["lowc"] + data["highc"]) / 2
+    years_axis = data["winter_year"]
+    
+    station_name = data["station_name"].iloc[0]
+    title = f"{station_name}: All Average Temp" 
+    basic_plot(years_axis, exact_temp, "Year", "Average Temp (in)", title)
+    plt.show()
 
 def all_precip(data: pd.DataFrame):
     """Takes data and graphs all precip data.\n\nThe data has to have year and precip columns."""
@@ -82,8 +93,8 @@ def all_precip(data: pd.DataFrame):
     years_axis = data["winter_year"]
     
     station_name = data["station_name"].iloc[0]
-    title = f"{station_name}: All Exact Melted Precip" 
-    basic_plot(years_axis, exact_precip, "Year", "Exact Melted Precip (in)", title)
+    title = f"{station_name}: All Melted Precip" 
+    basic_plot(years_axis, exact_precip, "Year", "Melted Precip (in)", title)
     plt.show()
 
 
@@ -96,6 +107,8 @@ def all_snowfall(data: pd.DataFrame):
     title = f"{station_name}: All Snowfall" 
     basic_plot(years_axis, exact_snow, "Year", "Snow (in)", title)
     plt.show()
+
+# ANALYSIS FUNCTIONS ------------------------------------------------------------------------------------------------------------------
 
 def average_temperature(data: pd.DataFrame, start_winter, end_winter):
     """Takes data and graphs the average, average temperature from each winter.\n\nThe data has to have winter_year, highc, and lowc columns."""

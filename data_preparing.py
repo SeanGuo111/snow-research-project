@@ -25,13 +25,17 @@ def import_all_rd():
     all_rd_raw: pd.DataFrame = import_from_source("All RD.txt")
     all_rd_raw["station_name"] = all_rd_raw["station_name"].astype('string')
     
-    station_names = all_rd_raw["station_name"].unique()
+    station_names = list(all_rd_raw["station_name"].unique())
     all_rd_dict = {station : pd.DataFrame() for station in station_names}
 
     for station in all_rd_dict.keys():
         current_station = all_rd_raw[:][all_rd_raw["station_name"] == station]
         all_rd_dict[station] = format_iowa_real_data(current_station)
     
+    # Removal of problems
+    all_rd_dict.pop("FRASER")
+    station_names.remove("FRASER")
+
     return {"data": all_rd_dict, "station_names": station_names}
 
 

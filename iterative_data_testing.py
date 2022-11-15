@@ -16,13 +16,16 @@ candidates = station_metadata[(station_metadata["elev"] >= lower_bound) & (stati
 
 return_value = dp.import_all_rd()
 all_data = return_value["data"]
-station_names = list(return_value["station_names"])
+station_names = return_value["station_names"]
 
 #breck_data = all_data["BRECKENRIDGE"]
 #print(breck_data)
 
 for station in station_names:
     current_station = all_data[station]
-    func.all_snowfall(current_station)
+    start_winter = current_station["winter_year"].iloc[0]
+    end_winter = current_station["winter_year"].iloc[len(current_station) - 2]
+    
+    func.average_temperature(current_station, start_winter, end_winter)
 
 
