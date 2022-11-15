@@ -110,8 +110,8 @@ def all_snowfall(data: pd.DataFrame):
 
 # ANALYSIS FUNCTIONS ------------------------------------------------------------------------------------------------------------------
 
-def average_temperature(data: pd.DataFrame, start_winter, end_winter):
-    """Takes data and graphs the average, average temperature from each winter.\n\nThe data has to have winter_year, highc, and lowc columns."""
+def average_temperature(data: pd.DataFrame, start_winter, end_winter, show: bool = True):
+    """Takes data and graphs the average, average temperature from each winter.\n\nThe data has to have winter_year, highc, and lowc columns.\n\n Sets up graph, but shows only if show set to true."""
     years_axis = np.arange(start_winter, end_winter + 1)
     average_axis = []
 
@@ -130,12 +130,14 @@ def average_temperature(data: pd.DataFrame, start_winter, end_winter):
     station_name = data["station_name"].iloc[0]
     title = f"{station_name}: Average Temperature from Winters of {start_winter}-{end_winter}"
     dict = linreg(years_axis, average_axis, title, "green")
+    
     basic_plot(years_axis, average_axis, "Year", "Average Temperature (C)", title, "purple", "o", line_style="")
     plt.xlim(start_winter, end_winter)
     plt.ylim(np.min(average_axis) - 1, np.max(average_axis) + 1)
     plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
     plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
-    plt.show()
+    if show:
+        plt.show()
 
     return dict
 

@@ -1,6 +1,10 @@
 import data_preparing as dp
 import real_data_functions as func
 import pandas as pd
+import matplotlib.pyplot as plt
+
+def average_temperature_subplots():
+    pass
 
 station_metadata = dp.import_from_source("Colorado Station Metadata.txt")
 
@@ -24,8 +28,12 @@ station_names = return_value["station_names"]
 for station in station_names:
     current_station = all_data[station]
     start_winter = current_station["winter_year"].iloc[0]
-    end_winter = current_station["winter_year"].iloc[len(current_station) - 2]
-    
-    func.average_temperature(current_station, start_winter, end_winter)
+    end_winter = current_station["winter_year"].iloc[len(current_station)-1] - 1
+    func.all_snowfall(current_station)
+
+    # plt.clf()
+    # stats_dict = func.average_temperature(current_station, start_winter, end_winter, show = False)
+    # if (stats_dict["slope"] >= 0):
+    #     plt.show()
 
 

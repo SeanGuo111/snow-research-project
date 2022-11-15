@@ -20,21 +20,18 @@ def import_from_source(file_name: str):
     return "Bad File Type"
 
 def import_all_rd():
-    """Imports massive real data file. Returns a dictionary of each station, and an array of unique station names."""
+    """Imports massive real data file. Returns a dictionary of each 'sane' station, and an array of unique station names."""
 
     all_rd_raw: pd.DataFrame = import_from_source("All RD.txt")
     all_rd_raw["station_name"] = all_rd_raw["station_name"].astype('string')
     
-    station_names = list(all_rd_raw["station_name"].unique())
+    station_names = ["Colorado - Colorado Drainage Basin Climate Division", "CRIPPLE CREEK","MARSHALL PASS","TELLURIDE 4WNW","LA VETA PASS","HERMIT 7 ESE","ALLENSPARK 2SE","GRAND LAKE 6 SSW",
+                    "LEADVILLE 2 SW","WOLF CREEK PASS 1 E","RUXTON PARK","MEREDITH","RIO GRANDE RSVR","LEMON DAM","VAIL","HOURGLASS RSVR"]
     all_rd_dict = {station : pd.DataFrame() for station in station_names}
 
     for station in all_rd_dict.keys():
         current_station = all_rd_raw[:][all_rd_raw["station_name"] == station]
         all_rd_dict[station] = format_iowa_real_data(current_station)
-    
-    # Removal of problems
-    all_rd_dict.pop("FRASER")
-    station_names.remove("FRASER")
 
     return {"data": all_rd_dict, "station_names": station_names}
 
