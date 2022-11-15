@@ -19,27 +19,43 @@ def import_from_source(file_name: str):
 
     return "Bad File Type"
 
+def import_all_rd():
+    """Imports massive real data file. Returns a dictionary of each station, and an array of unique station names."""
+
+    all_rd_raw: pd.DataFrame = import_from_source("All RD.txt")
+    all_rd_raw["station_name"] = all_rd_raw["station_name"].astype('string')
+    
+    station_names = all_rd_raw["station_name"].unique()
+    all_rd_dict = {station : pd.DataFrame() for station in station_names}
+
+    for station in all_rd_dict.keys():
+        current_station = all_rd_raw[:][all_rd_raw["station_name"] == station]
+        all_rd_dict[station] = format_iowa_real_data(current_station)
+    
+    return {"data": all_rd_dict, "station_names": station_names}
+
+
 # Shouldn't need this at the moment.
-def import_all_data():
-    """Imports all data, returned as a dictionary"""
-    data_dict = {}
+# def import_all_data():
+#     """Imports all data, returned as a dictionary"""
+#     data_dict = {}
 
-    breck_file_name = "Breckenridge RD.txt"
-    data_dict["breck_data"] = import_from_source(breck_file_name)
+#     breck_file_name = "Breckenridge RD.txt"
+#     data_dict["breck_data"] = import_from_source(breck_file_name)
 
-    leadville_file_name = "Leadville 2SW RD.txt"
-    data_dict["leadville_data"] = import_from_source(leadville_file_name)
+#     leadville_file_name = "Leadville 2SW RD.txt"
+#     data_dict["leadville_data"] = import_from_source(leadville_file_name)
 
-    telluride_file_name = "Telluride RD.txt"
-    data_dict["telluride_data"] = import_from_source(telluride_file_name)
+#     telluride_file_name = "Telluride RD.txt"
+#     data_dict["telluride_data"] = import_from_source(telluride_file_name)
 
-    constants_file_name = "RALconus4km_wrf_constants.nc"
-    data_dict["constants"] = import_from_source(constants_file_name)
+#     constants_file_name = "RALconus4km_wrf_constants.nc"
+#     data_dict["constants"] = import_from_source(constants_file_name)
 
-    snow_acc_control_2000q4_file_name = "wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc"
-    data_dict["snow_acc_control_2000q4"] = import_from_source(snow_acc_control_2000q4_file_name)
+#     snow_acc_control_2000q4_file_name = "wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc"
+#     data_dict["snow_acc_control_2000q4"] = import_from_source(snow_acc_control_2000q4_file_name)
 
-    return data_dict
+#     return data_dict
 
 # FORMATTING --------------------------------------------------------------------------------------------------------------------------
 def date_to_winter(date: datetime):
@@ -50,7 +66,7 @@ def date_to_winter(date: datetime):
         return f"{current_year}-{current_year + 1}"
 
 
-def format_iowa_real_data(data: pd.DataFrame, include_estimated_M_temp: bool = False, include_estimated_M_precip: bool = False):
+def format_iowa_real_data(data: pd.DataFrame, include_estimated_M_temp: bool = True, include_estimated_M_precip: bool = True):
     """Returns the formatted real_data. Disregards all data less than 0.01 as inaccuracy. Missing flags automatically are casted to True (estimated)."""
     """Boolean variables to indicate whether or not to include data whose flag was true or missing."""
     """Index is the year of the END of the winter season; for example, 1948 would represent the winter of 1947-1948."""
