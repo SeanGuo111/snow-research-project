@@ -3,6 +3,26 @@ import real_data_functions as func
 import pandas as pd
 import matplotlib.pyplot as plt
 
+def all_snowfall_subplots(all_data, station_names):
+    plt.subplots_adjust(hspace=0.5, wspace=0.5)
+    plt.suptitle("All Snowfall Data of 16 Colorado Stations")
+    graph_counter = 1
+
+    for current_station_name in station_names:
+        current_station = all_data[current_station_name]
+
+        exact_snow = current_station["snow"]
+        years_axis = current_station["winter_year"]
+
+        station_name = current_station["station_name"].iloc[0]
+        plt.subplot(4, 4, graph_counter)
+        plt.plot(years_axis, exact_snow)
+        plt.title(station_name)
+
+        graph_counter += 1
+
+    plt.show()
+
 def average_temperature_subplots():
     pass
 
@@ -24,12 +44,12 @@ station_names = return_value["station_names"]
 
 #breck_data = all_data["BRECKENRIDGE"]
 #print(breck_data)
+all_snowfall_subplots(all_data, station_names)
 
 for station in station_names:
     current_station = all_data[station]
-    start_winter = current_station["winter_year"].iloc[0]
-    end_winter = current_station["winter_year"].iloc[len(current_station)-1] - 1
-    func.all_snowfall(current_station)
+    start_winter, end_winter = func.get_start_end_winter_years(current_station)
+    func.average_temperature(current_station, start_winter, end_winter)
 
     # plt.clf()
     # stats_dict = func.average_temperature(current_station, start_winter, end_winter, show = False)

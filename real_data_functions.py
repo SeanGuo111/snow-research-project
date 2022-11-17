@@ -7,6 +7,12 @@ from sklearn.linear_model import LinearRegression
 import statsmodels.api as sm
 
 # UTILITY ------------------------------------------------------------------------------------------------------------------
+def get_start_end_winter_years(station):
+    """Returns start and end winter for a given station"""
+    start_winter = station["winter_year"].iloc[0]
+    end_winter = station["winter_year"].iloc[len(station)-1] - 1
+    return start_winter, end_winter
+
 def linreg(x_axis, y_axis, title, color):
     """Fits on a line from x and y axises, name, and color. Plots and displays equation and relevant statistics. Returns a dictionary of p-value and slope."""
     X = np.array(x_axis).reshape(-1,1)
