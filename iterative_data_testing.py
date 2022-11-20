@@ -38,56 +38,8 @@ def one_by_one_all_functions(data_dict, station_names, start_winter = None, end_
 
     
 # %% Grid Functions -----------------------------------------------------------------------------------------------
-
-def grid_all_temp_precip_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
-    grid_title = get_grid_title(f"All Temperature Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
-    fig, axs = adjust_grid(grid_title)
-    graph_counter = 0
-
-    for current_station_name in station_names:
-        current_station = data_dict[current_station_name]
-        current_axes = axs[graph_counter]
-        plt.sca(current_axes)
-
-        func.all_temp(current_station, start_winter, end_winter, show=False)
-        plt.title(current_station_name)
-        graph_counter += 1
-    
-    plt.show()
-
-    grid_title = get_grid_title(f"All Precip Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
-    fig, axs = adjust_grid(grid_title)
-    graph_counter = 0
-
-    for current_station_name in station_names:
-        current_station = data_dict[current_station_name]
-        current_axes = axs[graph_counter]
-        plt.sca(current_axes)
-
-        func.all_precip(current_station, start_winter, end_winter, show=False)
-        plt.title(current_station_name)
-        graph_counter += 1
-
-    plt.show()
-
-    grid_title = get_grid_title(f"All Snowfall Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
-    fig, axs = adjust_grid(grid_title)
-    graph_counter = 0
-
-    for current_station_name in station_names:
-        current_station = data_dict[current_station_name]
-        current_axes = axs[graph_counter]
-        plt.sca(current_axes)
-
-        func.all_snowfall(current_station, start_winter, end_winter, show=False)
-        plt.title(current_station_name)
-        graph_counter += 1
-
-    plt.show()
-
-
-def grid_average_temperature(data_dict, station_names, start_winter = None, end_winter = None):
-    grid_title = get_grid_title("Average Temperature Data of 16 Colorado Stations", start_winter, end_winter)
+def grid_func_allf(data_dict, station_names, given_function, grid_title, start_winter = None, end_winter = None):
+    grid_title = get_grid_title(grid_title, start_winter, end_winter)
     fig, axs = adjust_grid(grid_title)
     graph_counter = 0
 
@@ -96,13 +48,45 @@ def grid_average_temperature(data_dict, station_names, start_winter = None, end_
         
         current_axes = axs[graph_counter]
         plt.sca(current_axes)
-        dict = func.average_temperature(current_station, start_winter, end_winter, show=False)
+        given_function(current_station, start_winter, end_winter, show=False)
+        plt.title(current_station_name)
+
+        graph_counter += 1
+
+    plt.show()
+
+def grid_func_analysis(data_dict, station_names, given_function, grid_title, start_winter = None, end_winter = None):
+    grid_title = get_grid_title(grid_title, start_winter, end_winter)
+    fig, axs = adjust_grid(grid_title)
+    graph_counter = 0
+
+    for current_station_name in station_names:
+        current_station = data_dict[current_station_name]
+        
+        current_axes = axs[graph_counter]
+        plt.sca(current_axes)
+        dict = given_function(current_station, start_winter=start_winter, end_winter=end_winter, show=False, figtext=False)
         plt.title(current_station_name)
         plt.text(0.3,0.08, f"p={dict['p-value']}; tc={dict['total change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
 
         graph_counter += 1
 
     plt.show()
+
+def grid_all_temp_precip_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
+    grid_func_allf(data_dict, station_names, func.all_temp, f"All Temperature Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+    grid_func_allf(data_dict, station_names, func.all_precip, f"All Precip Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+    grid_func_allf(data_dict, station_names, func.all_snowfall, f"All Snowfall Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+
+
+def grid_average_temperature(data_dict, station_names, start_winter = None, end_winter = None):
+    grid_func_analysis(data_dict, station_names, func.average_temperature, f"Average Temperature Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+
+# IMPLEMENT season total swr, average/largest, x and % largest, and snow days for grids
+# IMPLEMENT checkdays abstraction
+
+def grid_season_total_swr(data_dict, station_names, start_winter = None, end_winter = None):
+    grid_func_analysis(data_dict, station_names, func.season_total_snow_water_ratio, f"Season Total SWR of {len(data_dict)} Colorado Stations", start_winter, end_winter)
 
 #%% Code Running
 return_value = dp.import_all_rd()
@@ -118,5 +102,6 @@ for name in map_station_names:
 start_winter = 1960
 end_winter = 1993
 
-one_by_one_all_functions(map_data, map_station_names, start_winter, end_winter)
-#one_by_one_temp_precip_snowfall(map_data, map_station_names)
+#grid_all_temp_precip_snowfall(map_data, map_station_names, start_winter, end_winter)
+grid_average_temperature(map_data, map_station_names, start_winter, end_winter)
+grid_season_total_swr(map_data, map_station_names, start_winter, end_winter)
