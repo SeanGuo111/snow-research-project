@@ -26,4 +26,4 @@ start_winter = 1948
 end_winter = 2020
 include_estimated_precip = False
 
-func.all_functions(breck_data, start_winter, end_winter, swr_include_estimated_precip=include_estimated_precip)
+func.all_functions(breck_data, start_winter, end_winter, swr_include_estimated_precip=include_estimated_precip, check_and_all=True)

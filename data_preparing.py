@@ -4,7 +4,7 @@ from datetime import date, datetime
 
 import netCDF4 as nc
 
-# IMPORTING --------------------------------------------------------------------------------------------------------------------------
+#%% IMPORTING --------------------------------------------------------------------------------------------------------------------------
 def import_from_source(file_name: str):
     """Imports a single source. If csv txt file, as a pandas Dataframe. If .nc file, as a netCDF4 dataset. Include filetype in name."""
     
@@ -59,7 +59,7 @@ def import_all_rd():
 
 #     return data_dict
 
-# FORMATTING --------------------------------------------------------------------------------------------------------------------------
+#%% FORMATTING --------------------------------------------------------------------------------------------------------------------------
 def date_to_winter(date: datetime):
     current_year = date.year
     if (date.month <= 6):
