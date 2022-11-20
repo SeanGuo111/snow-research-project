@@ -8,7 +8,7 @@ import numpy as np
 # %% Grid Utility Functions -----------------------------------------------------------------------------------------------
 def adjust_grid(grid_title):
     """Adjusts subplot grid to a 3x4 graph layout. Takes a overarching grid title as a parameter."""
-    fig, axs = plt.subplots(3,4) # ndarray if one of two subplots() parameters > 1
+    fig, axs = plt.subplots(2,3) # ndarray if one of two subplots() parameters > 1
     axs = axs.flatten() # Flatten 2D to 1D for plt.sca() later to work
     plt.subplots_adjust(hspace=0.5, wspace=0.5)
     plt.suptitle(grid_title)
@@ -23,7 +23,7 @@ def get_grid_title(title, start_winter, end_winter):
 
 
 # %% One by One Functions -----------------------------------------------------------------------------------------------
-def one_by_one_all_snow_temp_precip(data_dict, station_names, start_winter = None, end_winter = None):
+def one_by_one_temp_precip_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
     for current_station_name in station_names:
         current_station = data_dict[current_station_name]
 
@@ -38,23 +38,49 @@ def one_by_one_all_functions(data_dict, station_names, start_winter = None, end_
 
     
 # %% Grid Functions -----------------------------------------------------------------------------------------------
-def grid_all_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
-    grid_title = get_grid_title("Average Temperature Data of 16 Colorado Stations", start_winter, end_winter)
+
+def grid_all_temp_precip_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
+    grid_title = get_grid_title(f"All Temperature Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
     fig, axs = adjust_grid(grid_title)
     graph_counter = 0
 
     for current_station_name in station_names:
-
         current_station = data_dict[current_station_name]
-        
         current_axes = axs[graph_counter]
         plt.sca(current_axes)
-        func.all_snowfall(current_station, show=False)
-        plt.title(current_station_name)
-        
-        if start_winter != None and end_winter != None:
-            plt.xlim(start_winter,end_winter)
 
+        func.all_temp(current_station, start_winter, end_winter, show=False)
+        plt.title(current_station_name)
+        graph_counter += 1
+    
+    plt.show()
+
+    grid_title = get_grid_title(f"All Precip Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+    fig, axs = adjust_grid(grid_title)
+    graph_counter = 0
+
+    for current_station_name in station_names:
+        current_station = data_dict[current_station_name]
+        current_axes = axs[graph_counter]
+        plt.sca(current_axes)
+
+        func.all_precip(current_station, start_winter, end_winter, show=False)
+        plt.title(current_station_name)
+        graph_counter += 1
+
+    plt.show()
+
+    grid_title = get_grid_title(f"All Snowfall Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+    fig, axs = adjust_grid(grid_title)
+    graph_counter = 0
+
+    for current_station_name in station_names:
+        current_station = data_dict[current_station_name]
+        current_axes = axs[graph_counter]
+        plt.sca(current_axes)
+
+        func.all_snowfall(current_station, start_winter, end_winter, show=False)
+        plt.title(current_station_name)
         graph_counter += 1
 
     plt.show()
@@ -92,7 +118,5 @@ for name in map_station_names:
 start_winter = 1960
 end_winter = 1993
 
-#grid_all_snowfall(map_data, map_station_names, start_winter, end_winter)
-#grid_average_temperature(map_data, map_station_names, start_winter, end_winter)
-
-one_by_one_all_snow_temp_precip(all_data, all_station_names)
+one_by_one_all_functions(map_data, map_station_names, start_winter, end_winter)
+#one_by_one_temp_precip_snowfall(map_data, map_station_names)
