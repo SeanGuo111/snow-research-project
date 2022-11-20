@@ -8,8 +8,8 @@ import statsmodels.api as sm
 
 # UTILITY ------------------------------------------------------------------------------------------------------------------
 def get_start_end_winter_years(station):
-    """Returns start and end winter for a given station"""
-    start_winter = station["winter_year"].iloc[0]
+    """Returns start and end winter for a given station. First and last years clipped."""
+    start_winter = station["winter_year"].iloc[0] + 1
     end_winter = station["winter_year"].iloc[len(station)-1] - 1
     return start_winter, end_winter
 
@@ -33,17 +33,16 @@ def linreg(x_axis, y_axis, title, color):
 
     dict = {}
     dict["p-value"] = np.round(est.pvalues[1], 4)
-    dict["slope"] = np.round(slope_over_timeframe, 4)
+    dict["total change"] = np.round(slope_over_timeframe, 4)
     return dict
 
 
 def basic_plot(x_axis, y_axis, x_label=None, y_label=None, title=None, color=None, marker=None, line_style=None):
-    """Returns a basic graph. Does not include features such as x/y lims and shading. Legend label is the same as the y label."""
+    """Returns a basic graph. Does not include features such as x/y lims and shading."""
     plt.plot(x_axis, y_axis, label = y_label, color = color, marker = marker, ls = line_style)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
-    plt.legend()
 
 # FUNCTIONS ------------------------------------------------------------------------------------------------------------------
 
@@ -104,7 +103,7 @@ def all_precip(data: pd.DataFrame):
     plt.show()
 
 
-def all_snowfall(data: pd.DataFrame):
+def all_snowfall(data: pd.DataFrame, show: bool = True, start_winter = None, end_winter = None):
     """Takes data and graphs all precip data.\n\nThe data has to have year and snowfall columns."""
     exact_snow = data["snow"]
     years_axis = data["winter_year"]
@@ -112,7 +111,9 @@ def all_snowfall(data: pd.DataFrame):
     station_name = data["station_name"].iloc[0]
     title = f"{station_name}: All Snowfall" 
     basic_plot(years_axis, exact_snow, "Year", "Snow (in)", title)
-    plt.show()
+
+    if show:
+        plt.show()
 
 # ANALYSIS FUNCTIONS ------------------------------------------------------------------------------------------------------------------
 
@@ -122,8 +123,7 @@ def average_temperature(data: pd.DataFrame, start_winter, end_winter, show: bool
     average_axis = []
 
     for y in range(start_winter, end_winter + 1):
-        if (y == 2020):
-            print("sdf")
+        
         current_winter_data = data[data["winter_year"] == y]
         current_winter_lows = current_winter_data["lowc"]
         current_winter_highs = current_winter_data["highc"]        
@@ -139,9 +139,8 @@ def average_temperature(data: pd.DataFrame, start_winter, end_winter, show: bool
     
     basic_plot(years_axis, average_axis, "Year", "Average Temperature (C)", title, "purple", "o", line_style="")
     plt.xlim(start_winter, end_winter)
-    plt.ylim(np.min(average_axis) - 1, np.max(average_axis) + 1)
-    plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
-    plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
+    plt.ylim(np.min(average_axis) - 2, np.max(average_axis) + 2)
+    
     if show:
         plt.show()
 
@@ -171,8 +170,8 @@ def largest_and_average_snowfall_events(data: pd.DataFrame, start_winter, end_wi
     basic_plot(years_axis, average_axis, "Year", "Average Snowfall (in)", title, "b", "o", line_style="")
     plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(average_axis) + 1)
-    plt.figtext(0.7, 0.20, f"p-value: {dict_average['p-value']}")
-    plt.figtext(0.7, 0.15, f"slope: {dict_average['slope']}")
+    plt.figtext(0.65, 0.20, f"p-value: {dict_average['p-value']}")
+    plt.figtext(0.65, 0.15, f"total change: {dict_average['total change']}")
     plt.show()
     
     station_name = data["station_name"].iloc[0]
@@ -181,8 +180,9 @@ def largest_and_average_snowfall_events(data: pd.DataFrame, start_winter, end_wi
     basic_plot(years_axis, largest_axis, "Year", "Largest Snowfall (in)", title, "r", "o", line_style="")
     plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(largest_axis) + 1)
-    plt.figtext(0.7, 0.20, f"p-value: {dict_largest['p-value']}")
-    plt.figtext(0.7, 0.15, f"slope: {dict_largest['slope']}")
+    plt.figtext(0.65, 0.20, f"p-value: {dict_largest['p-value']}")
+    plt.figtext(0.65, 0.15, f"total change: {dict_largest['total change']}")
+
     plt.show()
 
     return dict_largest, dict_average
@@ -214,8 +214,8 @@ def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter, end_wint
     basic_plot(years_axis, average_axis, "Year", f"Average of {x}-Largest Snowfall Events (in)", title, "r", "o", "")
     plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(average_axis) + 1)
-    plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
-    plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
+    plt.figtext(0.65, 0.20, f"p-value: {dict['p-value']}")
+    plt.figtext(0.65, 0.15, f"total change: {dict['total change']}")
     plt.show()
 
     return dict
@@ -251,8 +251,8 @@ def percentage_largest_snowfall_events_average(data: pd.DataFrame, start_winter,
     basic_plot(years_axis, average_axis, "Year", f"Average of {percentage}%-Largest Snowfall Events (in)", title, "r", "o", "")
     plt.xlim(start_winter, end_winter)
     plt.ylim(0, np.max(average_axis) + 1)
-    plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
-    plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
+    plt.figtext(0.65, 0.20, f"p-value: {dict['p-value']}")
+    plt.figtext(0.65, 0.15, f"total change: {dict['total change']}")
     plt.show()
 
     return dict
@@ -286,8 +286,8 @@ def season_total_snow_water_ratio(data: pd.DataFrame, start_winter, end_winter, 
     basic_plot(years_axis, average_axis, "Year", "Season Total Snow-Water Ratio", title, "y", "o", line_style="")
     plt.xlim(start_winter, end_winter)
     plt.ylim(bottom=0)
-    plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
-    plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
+    plt.figtext(0.65, 0.20, f"p-value: {dict['p-value']}")
+    plt.figtext(0.65, 0.15, f"total change: {dict['total change']}")
     plt.show()
         
     return dict
@@ -308,8 +308,8 @@ def average_days_with_snow(data: pd.DataFrame, start_winter, end_winter):
     title = f"{station_name}: Number of Snow days each Winter from {start_winter}-{end_winter}"
     dict = linreg(years_axis, days_axis, title, "green")
     basic_plot(years_axis, days_axis, "Year", "Number of Snowfall Days", title, "cornflowerblue", "o", "")
-    plt.figtext(0.7, 0.20, f"p-value: {dict['p-value']}")
-    plt.figtext(0.7, 0.15, f"slope: {dict['slope']}")
+    plt.figtext(0.65, 0.20, f"p-value: {dict['p-value']}")
+    plt.figtext(0.65, 0.15, f"total change: {dict['total change']}")
     plt.xlim(start_winter, end_winter)
     plt.ylim(bottom=0)
     plt.show()

@@ -25,13 +25,14 @@ def import_all_rd():
     all_rd_raw: pd.DataFrame = import_from_source("All RD.txt")
     all_rd_raw["station_name"] = all_rd_raw["station_name"].astype('string')
     
-    station_names = ["Colorado - Colorado Drainage Basin Climate Division", "CRIPPLE CREEK","MARSHALL PASS","TELLURIDE 4WNW","LA VETA PASS","HERMIT 7 ESE","ALLENSPARK 2SE","GRAND LAKE 6 SSW",
-                    "LEADVILLE 2 SW","WOLF CREEK PASS 1 E","RUXTON PARK","MEREDITH","RIO GRANDE RSVR","LEMON DAM","VAIL","HOURGLASS RSVR"]
+    station_names = ["Colorado - Colorado Drainage Basin Climate Division","TELLURIDE 4WNW","LA VETA PASS","HERMIT 7 ESE","GRAND LAKE 6 SSW",
+                    "WOLF CREEK PASS 1 E","RUXTON PARK","MEREDITH","RIO GRANDE RSVR","LEMON DAM","VAIL","HOURGLASS RSVR"]
+    #All stations: station_names = list(all_rd_raw["station_name"].unique()) 
     all_rd_dict = {station : pd.DataFrame() for station in station_names}
 
     for station in all_rd_dict.keys():
         current_station = all_rd_raw[:][all_rd_raw["station_name"] == station]
-        all_rd_dict[station] = format_iowa_real_data(current_station)
+        all_rd_dict[station] = format_iowa_real_data(current_station, include_estimated_M_temp=True, include_estimated_M_precip=True)
 
     return {"data": all_rd_dict, "station_names": station_names}
 
@@ -69,7 +70,7 @@ def date_to_winter(date: datetime):
 
 def format_iowa_real_data(data: pd.DataFrame, include_estimated_M_temp: bool = True, include_estimated_M_precip: bool = True):
     """Returns the formatted real_data. Disregards all data less than 0.01 as inaccuracy. Missing flags automatically are casted to True (estimated)."""
-    """Boolean variables to indicate whether or not to include data whose flag was true or missing."""
+    """Boolean variables to indicate whether or not to include data whose flag was true or missing. If not included, the data is denoted as Nan."""
     """Index is the year of the END of the winter season; for example, 1948 would represent the winter of 1947-1948."""
    
      # Flag correct dtypes, technically still object dtype, but the values are all bool.
