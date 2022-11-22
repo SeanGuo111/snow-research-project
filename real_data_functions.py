@@ -51,7 +51,7 @@ def basic_plot(x_axis, y_axis, x_label=None, y_label=None, title=None, color=Non
 # FUNCTIONS ------------------------------------------------------------------------------------------------------------------
 
 #%% "ALL" FUNCTIONS, CHECK DAYS ------------------------------------------------------------------------------------------------------------------
-def all_functions(data: pd.DataFrame, start_winter=None, end_winter=None, x = 10, percentage = 20, swr_include_estimated_precip = True, check_and_all = False):
+def all_functions(data: pd.DataFrame, start_winter=None, end_winter=None, x:int = 10, percentage:int = 20, swr_include_estimated_precip:bool = True, check_and_all = False):
 
     """Call all functions."""
     """If start/end winters are not given, then they are inferred in the child function from the second and second-to-last year."""
@@ -69,9 +69,9 @@ def all_functions(data: pd.DataFrame, start_winter=None, end_winter=None, x = 10
     average_snowfall_events(data, start_winter, end_winter)
     largest_snowfall_events(data, start_winter, end_winter)
 
-    x_largest_snowfall_events_average(data, x, start_winter, end_winter)
-    percentage_largest_snowfall_events_average(data, percentage, start_winter, end_winter)
-    season_total_snow_water_ratio(data, swr_include_estimated_precip, start_winter, end_winter)
+    x_largest_snowfall_events_average(data, start_winter, end_winter, x)
+    percentage_largest_snowfall_events_average(data, start_winter, end_winter, percentage)
+    season_total_swr(data, start_winter, end_winter, swr_include_estimated_precip)
     average_days_with_snow(data, start_winter, end_winter)
 
 
@@ -242,7 +242,7 @@ def average_snowfall_events(data: pd.DataFrame, start_winter=None, end_winter=No
     return dict
 
 
-def x_largest_snowfall_events_average(data: pd.DataFrame, x=10, start_winter=None, end_winter=None, show:bool=True, figtext:bool=True):
+def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter=None, end_winter=None, x:int=10, show:bool=True, figtext:bool=True):
     """Takes data and graphs the average snowfall of the x largest events from each winter. Fits a line.\n\nThe data has to have winter_year and snow columns."""
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
@@ -279,7 +279,7 @@ def x_largest_snowfall_events_average(data: pd.DataFrame, x=10, start_winter=Non
     return dict
 
 
-def percentage_largest_snowfall_events_average(data: pd.DataFrame, percentage=20, start_winter=None, end_winter=None, show:bool=True, figtext:bool=True):
+def percentage_largest_snowfall_events_average(data: pd.DataFrame, start_winter=None, end_winter=None, percentage:int=20, show:bool=True, figtext:bool=True):
     """Takes data and graphs the average snowfall for a percentile of largest events for that winter. Fits a line.\n\nThe data has to have winter_year and snow columns."""
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
@@ -320,7 +320,7 @@ def percentage_largest_snowfall_events_average(data: pd.DataFrame, percentage=20
     return dict
 
 
-def season_total_snow_water_ratio(data: pd.DataFrame, include_estimated_precip: bool = True, start_winter=None, end_winter=None, show:bool=True, figtext:bool=True):
+def season_total_swr(data: pd.DataFrame, start_winter=None, end_winter=None, include_estimated_precip: bool = True, show:bool=True, figtext:bool=True):
     """Takes data and graphs the season total (bulk) snow-water ratio from each winter.\n\nThe data has to have winter_year, snow, and precip columns."""
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
