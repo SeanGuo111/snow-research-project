@@ -23,19 +23,17 @@ def get_grid_title(title, start_winter, end_winter):
 
 
 # %% One by One Functions -----------------------------------------------------------------------------------------------
-def one_by_one_func_allf(data_dict, station_names, given_function, start_winter = None, end_winter = None):
+def one_by_one_func(data_dict, station_names, given_function, start_winter = None, end_winter = None):
     for current_station_name in station_names:
         current_station = data_dict[current_station_name]
         given_function(current_station, start_winter, end_winter)
+        # By default figtext is shown, allowing for polymorphism of allf and analysis functions.
 
-def one_by_one_temp_precip_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
-    for current_station_name in station_names:
-        current_station = data_dict[current_station_name]
-
-        func.check_days(current_station, start_winter, end_winter)
-        func.all_temp(current_station, start_winter, end_winter)
-        func.all_precip(current_station, start_winter, end_winter)
-        func.all_snowfall(current_station, start_winter, end_winter)
+def one_by_one_check_days_temp_precip_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
+    one_by_one_func(data_dict, station_names, func.check_days, start_winter, end_winter)
+    one_by_one_func(data_dict, station_names, func.all_temp, start_winter, end_winter)
+    one_by_one_func(data_dict, station_names, func.all_precip, start_winter, end_winter)
+    one_by_one_func(data_dict, station_names, func.all_snowfall, start_winter, end_winter)
 
 def one_by_one_all_functions(data_dict, station_names, start_winter = None, end_winter = None):
     for current_station_name in station_names:
@@ -79,7 +77,7 @@ def grid_func_analysis(data_dict, station_names, given_function, grid_title, sta
 
     plt.show()
 
-def grid_all_temp_precip_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
+def grid_check_days_temp_precip_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
     grid_func_allf(data_dict, station_names, func.check_days, f"Day Count Check", start_winter, end_winter)
     grid_func_allf(data_dict, station_names, func.all_temp, f"All Temperature Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
     grid_func_allf(data_dict, station_names, func.all_precip, f"All Precip Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
@@ -109,6 +107,7 @@ for name in map_station_names:
 start_winter = 1960
 end_winter = 1993
 
-grid_all_temp_precip_snowfall(map_data, map_station_names, start_winter, end_winter)
-grid_average_temperature(map_data, map_station_names, start_winter, end_winter)
-grid_season_total_swr(map_data, map_station_names, start_winter, end_winter)
+one_by_one_check_days_temp_precip_snowfall(map_data, map_station_names)
+#grid_check_days_temp_precip_snowfall(map_data, map_station_names, start_winter, end_winter)
+#grid_average_temperature(map_data, map_station_names, start_winter, end_winter)
+#grid_season_total_swr(map_data, map_station_names, start_winter, end_winter)
