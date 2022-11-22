@@ -60,7 +60,7 @@ def all_functions(data: pd.DataFrame, start_winter=None, end_winter=None, x = 10
     """Default swr inclusion of estimated precip"""
 
     if check_and_all:
-        check_days(data)
+        check_days(data, start_winter, end_winter)
         all_temp(data, start_winter, end_winter)
         all_precip(data, start_winter, end_winter)
         all_snowfall(data, start_winter, end_winter)
@@ -74,19 +74,23 @@ def all_functions(data: pd.DataFrame, start_winter=None, end_winter=None, x = 10
     average_days_with_snow(data, start_winter, end_winter)
 
 
-def check_days(data: pd.DataFrame):
+def check_days(data: pd.DataFrame, start_winter=None, end_winter=None, show: bool = True):
     """Checks that the data includes all days. Printed number should be close to 365.25"""
-    first_year = data.iloc[0]["year"]
-    last_year = data.iloc[len(data) - 1]["year"]
-    print(len(data) / (last_year - first_year + 1))
+    """Still, excluding the first and last winter year."""
+    start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
+    subsetted_data = data[(data["year"] >= start_winter) & (data["year"] <= end_winter)]
+    print(len(subsetted_data) / (end_winter - start_winter + 1))
 
-    years_axis = np.arange(first_year, last_year + 1)
+    years_axis = np.arange(start_winter, end_winter + 1)
     days_axis = []
-    for year in range(first_year, last_year + 1):
+    for year in range(start_winter, end_winter + 1):
         days_axis.append(len(data[data["year"] == year]))
 
     plt.scatter(years_axis, days_axis)
-    plt.show()
+
+    if show: 
+        plt.show()
+
 
 def all_temp(data: pd.DataFrame, start_winter=None, end_winter=None, show: bool = True):
     """Takes data and graphs all average precip data.\n\nThe data has to have year and precip columns."""

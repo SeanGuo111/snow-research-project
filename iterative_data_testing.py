@@ -23,10 +23,16 @@ def get_grid_title(title, start_winter, end_winter):
 
 
 # %% One by One Functions -----------------------------------------------------------------------------------------------
+def one_by_one_func_allf(data_dict, station_names, given_function, start_winter = None, end_winter = None):
+    for current_station_name in station_names:
+        current_station = data_dict[current_station_name]
+        given_function(current_station, start_winter, end_winter)
+
 def one_by_one_temp_precip_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
     for current_station_name in station_names:
         current_station = data_dict[current_station_name]
 
+        func.check_days(current_station, start_winter, end_winter)
         func.all_temp(current_station, start_winter, end_winter)
         func.all_precip(current_station, start_winter, end_winter)
         func.all_snowfall(current_station, start_winter, end_winter)
@@ -74,6 +80,7 @@ def grid_func_analysis(data_dict, station_names, given_function, grid_title, sta
     plt.show()
 
 def grid_all_temp_precip_snowfall(data_dict, station_names, start_winter = None, end_winter = None):
+    grid_func_allf(data_dict, station_names, func.check_days, f"Day Count Check", start_winter, end_winter)
     grid_func_allf(data_dict, station_names, func.all_temp, f"All Temperature Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
     grid_func_allf(data_dict, station_names, func.all_precip, f"All Precip Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
     grid_func_allf(data_dict, station_names, func.all_snowfall, f"All Snowfall Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
@@ -82,7 +89,7 @@ def grid_all_temp_precip_snowfall(data_dict, station_names, start_winter = None,
 def grid_average_temperature(data_dict, station_names, start_winter = None, end_winter = None):
     grid_func_analysis(data_dict, station_names, func.average_temperature, f"Average Temperature Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
 
-# IMPLEMENT season total swr, average/largest, x and % largest, and snow days for grids
+# IMPLEMENT average/largest, x and % largest, and snow days for grids
 # IMPLEMENT checkdays abstraction
 
 def grid_season_total_swr(data_dict, station_names, start_winter = None, end_winter = None):
@@ -102,6 +109,6 @@ for name in map_station_names:
 start_winter = 1960
 end_winter = 1993
 
-#grid_all_temp_precip_snowfall(map_data, map_station_names, start_winter, end_winter)
+grid_all_temp_precip_snowfall(map_data, map_station_names, start_winter, end_winter)
 grid_average_temperature(map_data, map_station_names, start_winter, end_winter)
 grid_season_total_swr(map_data, map_station_names, start_winter, end_winter)
