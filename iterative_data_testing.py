@@ -1,9 +1,15 @@
 import data_preparing as dp
 import real_data_functions as func
 import pandas as pd
+import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
+
+import cartopy.crs as ccrs
+import cartopy.io.shapereader as shpreader
+import shapely.geometry as sgeom
+import matplotlib.patches as mpatches
 
 # %% Grid Utility Functions -----------------------------------------------------------------------------------------------
 def adjust_grid(grid_title, station_names):
@@ -72,7 +78,7 @@ def grid_func_analysis(data_dict, station_names, given_function, grid_title, sta
         plt.sca(current_axes)
         dict = given_function(current_station, start_winter=start_winter, end_winter=end_winter, show=False, figtext=False)
         plt.title(current_station_name)
-        plt.text(0.3,0.08, f"p={dict['p-value']}; tc={dict['total change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
+        plt.text(0.3,0.08, f"p={dict['p-value']}; tc={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
 
         graph_counter += 1
 
@@ -92,7 +98,7 @@ def grid_func_analysis_parametered(data_dict, station_names, given_function, giv
         plt.sca(current_axes)
         dict = given_function(current_station, start_winter, end_winter, given_parameter, show=False, figtext=False)
         plt.title(current_station_name)
-        plt.text(0.3,0.08, f"p={dict['p-value']}; tc={dict['total change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
+        plt.text(0.3,0.08, f"p={dict['p-value']}; tc={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
 
         graph_counter += 1
 
@@ -199,6 +205,57 @@ def one_by_one_all_functions_grouped_by_station(data_dict, station_names, start_
 
 
 
+#%% Map Function
+
+def plot_map(data_dict, station_names, title, given_function, given_parameter=None, start_winter=None, end_winter=None):
+    """Plots a map of Colorado for the given stations. Given parameter is x for x-largest, percentage for percentage-largest, and include-estimated-precip for swr"""
+    
+    fig = plt.figure(figsize=(20,10))
+
+    # GET STATION INFORMATION ------------------------
+    points: pd.DataFrame = pd.DataFrame(columns=["name", "lon", "lat", "p-value", "total_change"])
+    for current_station_name in station_names:
+        current_station = data_dict[current_station_name]
+        returned_dict = {}
+        if given_parameter==None:
+             returned_dict = given_function(current_station, start_winter, end_winter, show=False, figtext=False)
+        else:
+             returned_dict = given_function(current_station, start_winter, end_winter, given_parameter, show=False, figtext=False)
+        
+        p_value: float = returned_dict['p-value']
+        total_change: float = returned_dict['total_change']
+        lon: float = current_station["lon"].iloc[0]
+        lat: float = current_station["lat"].iloc[0]
+
+        new_point = {"name": current_station_name, "lon": lon, "lat": lat, "p-value": p_value, "total_change": total_change}
+        points.loc[len(points.index)] = new_point
+
+    fig.clf()
+
+    # MAP SETUP ------------------------
+    # Lambert Conformal vs Plate Carree?
+    ax = fig.add_axes([0, 0, 1, 1], projection=ccrs.PlateCarree(), frameon=False) # Sets background (projection type)
+    ax.set_extent([-110, -100.6, 36, 41.7], ccrs.PlateCarree()) # Sets US map
+    shapename = 'admin_1_states_provinces_lakes'
+    ax.natural_earth_shp(name=shapename, resolution='110m', category='cultural', facecolor= (0.9375, 0.9375, 0.859375), edgecolor='black')
+    #ax.add_raster()
+    fig.suptitle(get_grid_title(title, start_winter, end_winter))
+
+    
+    # POINT PLOTTING -----------------------
+    marker_sizes = np.where(points["p-value"] < 0.05, 100, 60)
+    
+    greatest_tc = np.ceil(np.max(np.abs(points["total_change"])))
+    norm = mpl.colors.Normalize(vmin=-greatest_tc, vmax=greatest_tc)
+    plt.scatter(x = points["lon"], y = points["lat"], transform=ccrs.PlateCarree(), s=marker_sizes, c=points["total_change"], norm=norm, cmap="seismic", marker='o', linewidths=0.5, edgecolors='black')
+    
+    ax = plt.gca()
+    cbar = plt.colorbar(orientation="vertical", pad=0.01)
+    plt.show()
+
+
+    
+
 #%% Code Running
 return_value = dp.import_all_rd()
 all_station_names = return_value["station_names"] #12 stations
@@ -211,6 +268,7 @@ for name in map_station_names:
 start_winter = 1960
 end_winter = 1993
 
-iterative_all_functions("grid", map_data, map_station_names, start_winter, end_winter)
+plot_map(all_data, all_station_names, f"Average Temperature Data of {len(all_station_names)} Colorado Stations", func.average_temperature)
+#iterative_all_functions("grid", map_data, map_station_names, start_winter, end_winter)
 #one_by_one_all_functions_grouped_by_station(map_data, map_station_names, start_winter, end_winter)
 

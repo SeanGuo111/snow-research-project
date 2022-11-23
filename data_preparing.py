@@ -27,7 +27,8 @@ def import_all_rd():
     
     station_names = ["Colorado - Colorado Drainage Basin Climate Division","TELLURIDE 4WNW","LA VETA PASS","HERMIT 7 ESE","GRAND LAKE 6 SSW",
                     "WOLF CREEK PASS 1 E","RUXTON PARK","MEREDITH","RIO GRANDE RSVR","LEMON DAM","VAIL","HOURGLASS RSVR"]
-    #All stations: station_names = list(all_rd_raw["station_name"].unique()) 
+    #All stations: 
+    #station_names = list(all_rd_raw["station_name"].unique()) 
     all_rd_dict = {station : pd.DataFrame() for station in station_names}
 
     for station in all_rd_dict.keys():
