@@ -3,20 +3,18 @@ import real_data_functions as func
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 
+import cartopy
 import cartopy.crs as ccrs
-import cartopy.io.shapereader as shpreader
-import shapely.geometry as sgeom
-import matplotlib.patches as mpatches
+
 
 # %% Grid Utility Functions -----------------------------------------------------------------------------------------------
 def adjust_grid(grid_title, station_names):
     """Adjusts subplot grid to a 2x3 or 3x4 graph layout. Takes a overarching grid title as a parameter."""
     fig, axs = None, None
-    if len(station_names) <= 6:
-        fig, axs = plt.subplots(2,3) # ndarray if one of two subplots() parameters > 1
+    if len(station_names) <= 4:
+        fig, axs = plt.subplots(2,2) # ndarray if one of two subplots() parameters > 1
     else:
         fig, axs = plt.subplots(3,4)
     
@@ -26,10 +24,21 @@ def adjust_grid(grid_title, station_names):
     
     return fig, axs
 
-def get_grid_title(title, start_winter, end_winter):
+def get_grid_title(title, start_winter, end_winter, subplot=False):
     date_str = ""
-    if (start_winter != None and end_winter != None):
-        date_str = f": Winters of {start_winter}-{end_winter}"
+    if subplot:
+        date_str = f": {start_winter}-{end_winter}"
+        return title + date_str
+    
+    if (start_winter != None or end_winter != None):
+        start_winter_str = (start_winter or "")
+        end_winter_str = (end_winter or "")
+        
+        if subplot:
+            date_str = f": {start_winter_str}-{end_winter_str}"
+        else:
+            date_str = f": Winters of {start_winter_str}-{end_winter_str}"
+    
     return title + date_str
 
 
@@ -59,7 +68,8 @@ def grid_func_allf(data_dict, station_names, given_function, grid_title, start_w
         current_axes = axs[graph_counter]
         plt.sca(current_axes)
         given_function(current_station, start_winter, end_winter, show=False)
-        plt.title(current_station_name)
+        start_winter_current, end_winter_current = func.get_start_end_winter_years(current_station, start_winter, end_winter)
+        plt.title(get_grid_title(current_station_name, start_winter_current, end_winter_current, True))
 
         graph_counter += 1
 
@@ -77,8 +87,9 @@ def grid_func_analysis(data_dict, station_names, given_function, grid_title, sta
         current_axes = axs[graph_counter]
         plt.sca(current_axes)
         dict = given_function(current_station, start_winter=start_winter, end_winter=end_winter, show=False, figtext=False)
-        plt.title(current_station_name)
-        plt.text(0.3,0.08, f"p={dict['p-value']}; tc={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
+        start_winter_current, end_winter_current = func.get_start_end_winter_years(current_station, start_winter, end_winter)
+        plt.title(get_grid_title(current_station_name, start_winter_current, end_winter_current, True))
+        plt.text(0.3,0.06, f"p={dict['p-value']}; tc={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
 
         graph_counter += 1
 
@@ -97,7 +108,8 @@ def grid_func_analysis_parametered(data_dict, station_names, given_function, giv
         current_axes = axs[graph_counter]
         plt.sca(current_axes)
         dict = given_function(current_station, start_winter, end_winter, given_parameter, show=False, figtext=False)
-        plt.title(current_station_name)
+        start_winter_current, end_winter_current = func.get_start_end_winter_years(current_station, start_winter, end_winter)
+        plt.title(get_grid_title(current_station_name, start_winter_current, end_winter_current, True))
         plt.text(0.3,0.08, f"p={dict['p-value']}; tc={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
 
         graph_counter += 1
@@ -209,8 +221,9 @@ def one_by_one_all_functions_grouped_by_station(data_dict, station_names, start_
 
 def plot_map(data_dict, station_names, title, given_function, given_parameter=None, start_winter=None, end_winter=None):
     """Plots a map of Colorado for the given stations. Given parameter is x for x-largest, percentage for percentage-largest, and include-estimated-precip for swr"""
-    
-    fig = plt.figure(figsize=(20,10))
+    """You must include start and end winter parameters for maps."""
+
+    fig = plt.figure()
 
     # GET STATION INFORMATION ------------------------
     points: pd.DataFrame = pd.DataFrame(columns=["name", "lon", "lat", "p-value", "total_change"])
@@ -235,40 +248,64 @@ def plot_map(data_dict, station_names, title, given_function, given_parameter=No
     # MAP SETUP ------------------------
     # Lambert Conformal vs Plate Carree?
     ax = fig.add_axes([0, 0, 1, 1], projection=ccrs.PlateCarree(), frameon=False) # Sets background (projection type)
-    ax.set_extent([-110, -100.6, 36, 41.7], ccrs.PlateCarree()) # Sets US map
+    extent = [-110, -100.6, 36, 41.7]
+    ax.set_extent(extent, ccrs.PlateCarree()) # Sets US map
+    
     shapename = 'admin_1_states_provinces_lakes'
-    ax.natural_earth_shp(name=shapename, resolution='110m', category='cultural', facecolor= (0.9375, 0.9375, 0.859375), edgecolor='black')
-    #ax.add_raster()
+    feature = cartopy.feature.NaturalEarthFeature(name=shapename, scale='110m', category='cultural', facecolor= (0.9375, 0.9375, 0.859375), edgecolor='black')
+    ax.add_feature(feature)
+    
+    # raster_path = "C:\\Users\\swguo\\VSCode Projects\\Snow Research\\HYP_HR_SR_W\\HYP_HR_SR_W.tif"
+    # ds = gdal.Open(raster_path)
+    # data = ds.ReadAsArray()
+    # gt = ds.GetGeoTransform()
+    # proj = ds.GetProjection()
+    # inproj = osr.SpatialReference()
+    # inproj.ImportFromWkt(proj)
+    # projcs = inproj.GetAuthorityCode('PROJCS')
+    # projection = ccrs.epsg(projcs)
+    # ax.add_raster(projection)
+
     fig.suptitle(get_grid_title(title, start_winter, end_winter))
 
     
     # POINT PLOTTING -----------------------
-    marker_sizes = np.where(points["p-value"] < 0.05, 100, 60)
+    marker_sizes = np.where(points["p-value"] < 0.05, 120, 60)
     
     greatest_tc = np.ceil(np.max(np.abs(points["total_change"])))
     norm = mpl.colors.Normalize(vmin=-greatest_tc, vmax=greatest_tc)
     plt.scatter(x = points["lon"], y = points["lat"], transform=ccrs.PlateCarree(), s=marker_sizes, c=points["total_change"], norm=norm, cmap="seismic", marker='o', linewidths=0.5, edgecolors='black')
     
-    ax = plt.gca()
-    cbar = plt.colorbar(orientation="vertical", pad=0.01)
+    cbar = plt.colorbar(orientation="vertical", shrink=0.75)
     plt.show()
 
 
     
 
 #%% Code Running
-return_value = dp.import_all_rd()
-all_station_names = return_value["station_names"] #12 stations
-all_data = return_value["data"]
-map_station_names = ["Colorado - Colorado Drainage Basin Climate Division","TELLURIDE 4WNW","HERMIT 7 ESE","WOLF CREEK PASS 1 E","RUXTON PARK"] #5 stations on 1960-1993
-map_data = {} # has to be a dict with keys and values
-for name in map_station_names:
-    map_data[name] = all_data[name]
+return_value = dp.import_all_rd(False, False, True)
+#all_data = return_value["all_data"]["all_station_dict"] #48 stations
+#all_station_names = return_value["all_data"]["all_station_names"] #48 stations
 
-start_winter = 1960
-end_winter = 1993
+#sane_data = return_value["sane_data"]["sane_station_dict"] #12 stations
+#sane_station_names = return_value["sane_data"]["sane_station_names"] #12 stations
 
-plot_map(all_data, all_station_names, f"Average Temperature Data of {len(all_station_names)} Colorado Stations", func.average_temperature)
-#iterative_all_functions("grid", map_data, map_station_names, start_winter, end_winter)
+map_data = return_value["map_data"]["map_station_dict"] #4 stations
+map_station_names = return_value["map_data"]["map_station_names"] #4 stations
+
+start_winter = 1961
+end_winter = 2022
+x = 10
+percentage = 20
+include_estimated_precip = True
+
+
+#plot_map(map_data, map_station_names, f"Average Snowfall Events of {len(map_station_names)} Colorado Stations", 
+#           func.average_snowfall_events, start_winter=1960, end_winter=2022)
+
+iterative_x_largest_snowfall_events_average("grid", map_data, map_station_names, start_winter, end_winter)
+plot_map(map_data, map_station_names, f"Average {x}-Largest Snowfall Events of {len(map_station_names)} Colorado Stations", func.x_largest_snowfall_events_average, x, start_winter, end_winter)
+
+#iterative_all_functions("1b1", map_data, map_station_names, start_winter, end_winter, check_and_all=False)
 #one_by_one_all_functions_grouped_by_station(map_data, map_station_names, start_winter, end_winter)
 

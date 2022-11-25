@@ -19,23 +19,51 @@ def import_from_source(file_name: str):
 
     return "Bad File Type"
 
-def import_all_rd():
+
+def import_all_rd(all_data: bool, sane_data: bool, map_data: bool):
     """Imports massive real data file. Returns a dictionary of each 'sane' station, and an array of unique station names."""
 
     all_rd_raw: pd.DataFrame = import_from_source("All RD.txt")
     all_rd_raw["station_name"] = all_rd_raw["station_name"].astype('string')
     
-    station_names = ["Colorado - Colorado Drainage Basin Climate Division","TELLURIDE 4WNW","LA VETA PASS","HERMIT 7 ESE","GRAND LAKE 6 SSW",
+    all_station_names:np.ndarray = np.array(all_rd_raw["station_name"].unique())
+    all_station_names = np.delete(all_station_names, np.where(all_station_names=="FRASER"))
+
+    sane_station_names = ["Colorado - Colorado Drainage Basin Climate Division","TELLURIDE 4WNW","LA VETA PASS","HERMIT 7 ESE","GRAND LAKE 6 SSW",
                     "WOLF CREEK PASS 1 E","RUXTON PARK","MEREDITH","RIO GRANDE RSVR","LEMON DAM","VAIL","HOURGLASS RSVR"]
-    #All stations: 
-    #station_names = list(all_rd_raw["station_name"].unique()) 
-    all_rd_dict = {station : pd.DataFrame() for station in station_names}
+    map_station_names = ["Colorado - Colorado Drainage Basin Climate Division","TELLURIDE 4WNW","HERMIT 7 ESE","RUXTON PARK"]
+    list = {}
 
-    for station in all_rd_dict.keys():
-        current_station = all_rd_raw[:][all_rd_raw["station_name"] == station]
-        all_rd_dict[station] = format_iowa_real_data(current_station, include_estimated_M_temp=True, include_estimated_M_precip=True)
+    # Setup all data
+    if all_data:
+        all_dict = {station : pd.DataFrame() for station in all_station_names}
+        for station in all_dict.keys():
+            current_station = all_rd_raw[:][all_rd_raw["station_name"] == station]
+            all_dict[station] = format_iowa_real_data(current_station, include_estimated_M_temp=True, include_estimated_M_precip=True)
 
-    return {"data": all_rd_dict, "station_names": station_names}
+        list["all_data"] = {"all_station_dict": all_dict, "all_station_names": all_station_names}
+
+    # Setup sane data
+    if sane_data:
+        sane_dict = {station : pd.DataFrame() for station in sane_station_names}
+        for station in sane_dict.keys():
+            current_station = all_rd_raw[:][all_rd_raw["station_name"] == station]
+            sane_dict[station] = format_iowa_real_data(current_station, include_estimated_M_temp=True, include_estimated_M_precip=True)
+
+        list["sane_data"] = {"sane_station_dict": sane_dict, "sane_station_names": sane_station_names}
+    
+
+    # Setup map data
+    if map_data:
+        map_dict = {station : pd.DataFrame() for station in map_station_names}
+        for station in map_dict.keys():
+            current_station = all_rd_raw[:][all_rd_raw["station_name"] == station]
+            map_dict[station] = format_iowa_real_data(current_station, include_estimated_M_temp=True, include_estimated_M_precip=True)
+
+        list["map_data"] = {"map_station_dict": map_dict, "map_station_names": map_station_names}
+    
+    
+    return list
 
 
 # Shouldn't need this at the moment.

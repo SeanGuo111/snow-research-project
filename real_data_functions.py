@@ -16,6 +16,13 @@ def get_start_end_winter_years(station, start_winter = None, end_winter = None):
         end_winter = station["winter_year"].iloc[len(station)-1] - 1
     return start_winter, end_winter
 
+def remove_nan_zero_years(x_axis, y_axis):
+    """Creates removes x and y values nan/0 years."""
+    array_valid = ~(np.isnan(y_axis) | np.where(y_axis == 0, True, False))
+    x_axis = x_axis[array_valid]
+    y_axis = y_axis[array_valid]
+
+    return x_axis, y_axis
 
 def linreg(x_axis, y_axis, title, color):
     """Fits on a line from x and y axises, name, and color. Plots and displays equation and relevant statistics. Returns a dictionary of p-value and slope."""
@@ -83,9 +90,9 @@ def check_days(data: pd.DataFrame, start_winter=None, end_winter=None, show: boo
     print(len(subsetted_data) / (end_winter - start_winter + 1))
 
     years_axis = np.arange(start_winter, end_winter + 1)
-    days_axis = []
+    days_axis = np.array([])
     for year in range(start_winter, end_winter + 1):
-        days_axis.append(len(data[data["year"] == year]))
+        days_axis = np.append(days_axis, len(data[data["year"] == year]))
 
     station_name = data["station_name"].iloc[0]
     plt.title(f"{station_name}: Day Count Check")
@@ -153,7 +160,7 @@ def average_temperature(data: pd.DataFrame, start_winter=None, end_winter=None, 
     """Takes data and graphs the average, average temperature from each winter.\n\nThe data has to have winter_year, highc, and lowc columns.\n\n Sets up graph, but shows only if show set to true."""
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
-    average_axis = []
+    average_axis = np.array([])
 
     for y in range(start_winter, end_winter + 1):
         
@@ -164,8 +171,9 @@ def average_temperature(data: pd.DataFrame, start_winter=None, end_winter=None, 
         average_temp_by_day = (current_winter_lows + current_winter_highs) / 2
         average_temp_winter = np.average(average_temp_by_day)
 
-        average_axis.append(average_temp_winter)
+        average_axis = np.append(average_axis, average_temp_winter)
     
+    years_axis, average_axis = remove_nan_zero_years(years_axis, average_axis)
     station_name = data["station_name"].iloc[0]
     title = f"{station_name}: Average Temperature from Winters of {start_winter}-{end_winter}"
     dict = linreg(years_axis, average_axis, title, "green")
@@ -187,15 +195,16 @@ def largest_snowfall_events(data: pd.DataFrame, start_winter=None, end_winter=No
     """Takes data and graphs the largest snowfall event from each winter.\n\nThe data has to have winter_year and snow columns. Start/end winter can be None."""
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
-    largest_axis = []
+    largest_axis = np.array([])
 
     for y in range(start_winter, end_winter + 1):
         current_winter_data = data[data["winter_year"] == y]
         current_winter_snowfall = current_winter_data["snow"]
         
         largest = current_winter_snowfall.max()
-        largest_axis.append(largest)
+        largest_axis = np.append(largest_axis, largest)
     
+    years_axis, largest_axis = remove_nan_zero_years(years_axis, largest_axis)
     station_name = data["station_name"].iloc[0]
     title = f"{station_name}: Largest Snowfall Events from Winters of {start_winter}-{end_winter}"
     dict = linreg(years_axis, largest_axis, title, "blue")
@@ -218,15 +227,16 @@ def average_snowfall_events(data: pd.DataFrame, start_winter=None, end_winter=No
     # SEE IF THIS CAN BE CLEANED
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
-    average_axis = []
+    average_axis = np.array([])
 
     for y in range(start_winter, end_winter + 1):
         current_winter_data = data[data["winter_year"] == y]
         current_winter_snowfall = current_winter_data["snow"]
         
         average = current_winter_snowfall.replace(0.0, np.nan).mean()
-        average_axis.append(average)
+        average_axis = np.append(average_axis, average)
     
+    years_axis, average_axis = remove_nan_zero_years(years_axis, average_axis)
     station_name = data["station_name"].iloc[0]
     title = f"{station_name}: Average Snowfall Events from Winters of {start_winter}-{end_winter}" 
     dict = linreg(years_axis, average_axis, title, "green")
@@ -248,7 +258,7 @@ def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter=None, end
     """Takes data and graphs the average snowfall of the x largest events from each winter. Fits a line.\n\nThe data has to have winter_year and snow columns."""
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
-    average_axis = []
+    average_axis = np.array([])
 
     for y in range(start_winter, end_winter + 1):
         current_winter_data = data[data["winter_year"] == y]
@@ -256,14 +266,21 @@ def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter=None, end
         max_total = 0
 
         for i in range(x):
+            if ((current_winter_snowfall == 0).all() or current_winter_snowfall.isnull().all()):
+                max_total = np.nan
+                break
+
             current_max_index = current_winter_snowfall.idxmax() # index is a label (year) so loc. if it was an integer, than it would be iloc.
             max_total += current_winter_snowfall.loc[current_max_index]
             current_winter_excluded = current_winter_snowfall.drop(current_max_index, inplace=False)
             current_winter_snowfall = current_winter_excluded
         
-        average_axis.append(max_total / x)
+        if not np.isnan(max_total):
+            average_axis = np.append(average_axis, (max_total / x))
+        else:
+            average_axis = np.append(average_axis, np.nan)
 
-
+    years_axis, average_axis = remove_nan_zero_years(years_axis, average_axis)
     station_name = data["station_name"].iloc[0]
     title = f"{station_name}: Average {x}-Largest Snowfall Events from {start_winter}-{end_winter}"
     dict = linreg(years_axis, average_axis, title, "blue")
@@ -285,7 +302,7 @@ def percentage_largest_snowfall_events_average(data: pd.DataFrame, start_winter=
     """Takes data and graphs the average snowfall for a percentile of largest events for that winter. Fits a line.\n\nThe data has to have winter_year and snow columns."""
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
-    average_axis = []
+    average_axis = np.array([])
     
     for y in range(start_winter, end_winter + 1):
         current_winter_data = data[data["winter_year"] == y]
@@ -302,9 +319,9 @@ def percentage_largest_snowfall_events_average(data: pd.DataFrame, start_winter=
             current_winter_excluded = current_winter_snowfall.drop(current_max_index, inplace=False)
             current_winter_snowfall = current_winter_excluded
         
-        average_axis.append(max_total / amount_highest_winters)
+        average_axis = np.append(average_axis, (max_total / amount_highest_winters))
 
- 
+    years_axis, average_axis = remove_nan_zero_years(years_axis, average_axis)
     station_name = data["station_name"].iloc[0]
     title = f"{station_name}: Average Top {percentage}% Snowfall Events from {start_winter}-{end_winter}"
     dict = linreg(years_axis, average_axis, title, "blue")
@@ -326,7 +343,7 @@ def season_total_swr(data: pd.DataFrame, start_winter=None, end_winter=None, inc
     """Takes data and graphs the season total (bulk) snow-water ratio from each winter.\n\nThe data has to have winter_year, snow, and precip columns."""
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
-    average_axis = []
+    average_axis = np.array([])
 
     for y in range(start_winter, end_winter + 1):
         #Setup current year data
@@ -343,9 +360,9 @@ def season_total_swr(data: pd.DataFrame, start_winter=None, end_winter=None, inc
         precip_sum = np.sum(np.array(current_winter_swr_available["precip"]))
         SWR_average = snow_sum / precip_sum
 
-        average_axis.append(SWR_average)
+        average_axis = np.append(average_axis, SWR_average)
 
-    
+    years_axis, average_axis = remove_nan_zero_years(years_axis, average_axis)
     station_name = data["station_name"].iloc[0]
     title = f"{station_name}: Season Total Snow Water Ratio from {start_winter}-{end_winter}"
     dict = linreg(years_axis, average_axis, title, "purple")
@@ -366,14 +383,15 @@ def average_days_with_snow(data: pd.DataFrame, start_winter=None, end_winter=Non
     """Takes data and graphs the total number of days with snow each year.\n\nThe data has to have year and snow columns."""
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
-    days_axis = []
+    days_axis = np.array([])
 
     for y in range(start_winter, end_winter + 1):
         current_winter_data = data[data["winter_year"] == y]
         current_winter_snow_days = current_winter_data[current_winter_data["snow"] > 0]
-        days_axis.append(len(current_winter_snow_days))
+        
+        days_axis = np.append(days_axis, len(current_winter_snow_days))
 
-    
+    years_axis, days_axis = remove_nan_zero_years(years_axis, days_axis)
     station_name = data["station_name"].iloc[0]
     title = f"{station_name}: Number of Snow days each Winter from {start_winter}-{end_winter}"
     dict = linreg(years_axis, days_axis, title, "green")
