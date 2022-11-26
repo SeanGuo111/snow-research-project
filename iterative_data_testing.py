@@ -283,9 +283,9 @@ def plot_map(data_dict, station_names, title, given_function, given_parameter=No
     
 
 #%% Code Running
-return_value = dp.import_all_rd(False, False, True)
-#all_data = return_value["all_data"]["all_station_dict"] #48 stations
-#all_station_names = return_value["all_data"]["all_station_names"] #48 stations
+return_value = dp.import_all_rd(True, False, True)
+all_data = return_value["all_data"]["all_station_dict"] #48 stations
+all_station_names = return_value["all_data"]["all_station_names"] #48 stations
 
 #sane_data = return_value["sane_data"]["sane_station_dict"] #12 stations
 #sane_station_names = return_value["sane_data"]["sane_station_names"] #12 stations
@@ -300,12 +300,11 @@ percentage = 20
 include_estimated_precip = True
 
 
-#plot_map(map_data, map_station_names, f"Average Snowfall Events of {len(map_station_names)} Colorado Stations", 
-#           func.average_snowfall_events, start_winter=1960, end_winter=2022)
-
-iterative_x_largest_snowfall_events_average("grid", map_data, map_station_names, start_winter, end_winter)
-plot_map(map_data, map_station_names, f"Average {x}-Largest Snowfall Events of {len(map_station_names)} Colorado Stations", func.x_largest_snowfall_events_average, x, start_winter, end_winter)
+#iterative_all_functions("grid", map_data, map_station_names)
+#iterative_season_total_swr("grid", map_data, map_station_names, start_winter, end_winter)
+plot_map(all_data, all_station_names, f"Change in Average Snowfall of {len(all_station_names)} Colorado Stations", func.average_snowfall_events)
 
 #iterative_all_functions("1b1", map_data, map_station_names, start_winter, end_winter, check_and_all=False)
 #one_by_one_all_functions_grouped_by_station(map_data, map_station_names, start_winter, end_winter)
+
 

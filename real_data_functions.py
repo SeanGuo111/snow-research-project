@@ -300,6 +300,9 @@ def x_largest_snowfall_events_average(data: pd.DataFrame, start_winter=None, end
 
 def percentage_largest_snowfall_events_average(data: pd.DataFrame, start_winter=None, end_winter=None, percentage:int=20, show:bool=True, figtext:bool=True):
     """Takes data and graphs the average snowfall for a percentile of largest events for that winter. Fits a line.\n\nThe data has to have winter_year and snow columns."""
+    """In the case that the percentage is too selective, andn there are not enough events to make an accurate percentage, the single largest event is used."""
+    """Ex. if the chosen percentage is 20%, and there are 4 snow events that year, then the largest of the 4 is chosen for that year"""
+    
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
     average_axis = np.array([])
@@ -309,7 +312,11 @@ def percentage_largest_snowfall_events_average(data: pd.DataFrame, start_winter=
         current_winter_snowfall = current_winter_data["snow"]
 
         snow_days_length = len(current_winter_snowfall[current_winter_snowfall > 0])
-        amount_highest_winters = (int) (np.floor(snow_days_length * (percentage / 100)))
+        if (snow_days_length == 0):
+            average_axis = np.append(average_axis, np.nan)
+            continue
+        amount_highest_winters = (int) (np.ceil(snow_days_length * (percentage / 100)))
+        
        
         max_total = 0
 
@@ -354,6 +361,10 @@ def season_total_swr(data: pd.DataFrame, start_winter=None, end_winter=None, inc
         if not include_estimated_precip:
             swr_availability = (current_winter_data["snow"] > 0) & (current_winter_data["precip"] > 0) & (current_winter_data["highc"] < 2) & (current_winter_data["precip_estimated"] == False)
         current_winter_swr_available = current_winter_data[swr_availability]
+        
+        if (len(current_winter_swr_available) == 0):
+            average_axis = np.append(average_axis, np.nan)
+            continue
 
         # Calculation
         snow_sum = np.sum(np.array(current_winter_swr_available["snow"]))
