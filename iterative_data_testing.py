@@ -5,16 +5,22 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 import cartopy
 import cartopy.crs as ccrs
+import rasterio
+from PIL import Image
+import cartopy.io.shapereader as shpreader
+from affine import Affine
+
 
 
 # %% Grid Utility Functions -----------------------------------------------------------------------------------------------
 def adjust_grid(grid_title, station_names):
     """Adjusts subplot grid to a 2x3 or 3x4 graph layout. Takes a overarching grid title as a parameter."""
     fig, axs = None, None
-    if len(station_names) <= 4:
-        fig, axs = plt.subplots(2,2) # ndarray if one of two subplots() parameters > 1
+    if len(station_names) <= 3:
+        fig, axs = plt.subplots(3,1, figsize=(6, 15)) # ndarray if one of two subplots() parameters > 1
     else:
         fig, axs = plt.subplots(3,4)
     
@@ -35,9 +41,9 @@ def get_grid_title(title, start_winter, end_winter, subplot=False):
         end_winter_str = (end_winter or "")
         
         if subplot:
-            date_str = f": {start_winter_str}-{end_winter_str}"
+            date_str = f": {start_winter_str}--{end_winter_str}"
         else:
-            date_str = f": Winters of {start_winter_str}-{end_winter_str}"
+            date_str = f": Winters {start_winter_str}--{end_winter_str}"
     
     return title + date_str
 
@@ -89,7 +95,7 @@ def grid_func_analysis(data_dict, station_names, given_function, grid_title, sta
         dict = given_function(current_station, start_winter=start_winter, end_winter=end_winter, show=False, figtext=False)
         start_winter_current, end_winter_current = func.get_start_end_winter_years(current_station, start_winter, end_winter)
         plt.title(get_grid_title(current_station_name, start_winter_current, end_winter_current, True))
-        plt.text(0.3,0.06, f"p={dict['p-value']}; tc={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
+        plt.text(0.4,0.08, f"p={dict['p-value']}; total change={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
 
         graph_counter += 1
 
@@ -110,7 +116,7 @@ def grid_func_analysis_parametered(data_dict, station_names, given_function, giv
         dict = given_function(current_station, start_winter, end_winter, given_parameter, show=False, figtext=False)
         start_winter_current, end_winter_current = func.get_start_end_winter_years(current_station, start_winter, end_winter)
         plt.title(get_grid_title(current_station_name, start_winter_current, end_winter_current, True))
-        plt.text(0.3,0.08, f"p={dict['p-value']}; tc={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
+        plt.text(0.4,0.08, f"p={dict['p-value']}; total change={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
 
         graph_counter += 1
 
@@ -127,9 +133,9 @@ def iterative_check_days_temp_precip_snowfall(type, data_dict, station_names, st
         one_by_one_func(data_dict, station_names, func.all_snowfall, start_winter, end_winter)
     elif type == "grid":
         grid_func_allf(data_dict, station_names, func.check_days, f"Day Count Check", start_winter, end_winter)
-        grid_func_allf(data_dict, station_names, func.all_temp, f"All Temperature Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
-        grid_func_allf(data_dict, station_names, func.all_precip, f"All Precip Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
-        grid_func_allf(data_dict, station_names, func.all_snowfall, f"All Snowfall Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+        grid_func_allf(data_dict, station_names, func.all_temp, f"All Temperature Data", start_winter, end_winter)
+        grid_func_allf(data_dict, station_names, func.all_precip, f"All Precip Data", start_winter, end_winter)
+        grid_func_allf(data_dict, station_names, func.all_snowfall, f"All Snowfall Data", start_winter, end_winter)
     else:
         print("Invalid type.")
 
@@ -138,7 +144,7 @@ def iterative_average_temperature(type, data_dict, station_names, start_winter =
     if type == "1b1":
         one_by_one_func(data_dict, station_names, func.average_temperature, start_winter, end_winter)
     elif type == "grid":
-        grid_func_analysis(data_dict, station_names, func.average_temperature, f"Average Temperature Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+        grid_func_analysis(data_dict, station_names, func.average_temperature, f"Average Temperature of each Winter", start_winter, end_winter)
     else:
         print("Invalid type.")
 
@@ -147,7 +153,7 @@ def iterative_largest_snowfall_events(type, data_dict, station_names, start_wint
     if type == "1b1":
         one_by_one_func(data_dict, station_names, func.largest_snowfall_events, start_winter, end_winter)
     elif type == "grid":
-        grid_func_analysis(data_dict, station_names, func.largest_snowfall_events, f"Largest Snowfall Event Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+        grid_func_analysis(data_dict, station_names, func.largest_snowfall_events, f"Largest Snowfall Event Size of each Winter", start_winter, end_winter)
     else:
         print("Invalid type.")
 
@@ -156,7 +162,7 @@ def iterative_average_snowfall_events(type, data_dict, station_names, start_wint
     if type == "1b1":
         one_by_one_func(data_dict, station_names, func.average_snowfall_events, start_winter, end_winter)
     elif type == "grid":
-        grid_func_analysis(data_dict, station_names, func.average_snowfall_events, f"Average Snowfall Event Data of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+        grid_func_analysis(data_dict, station_names, func.average_snowfall_events, f"Average Snowfall Event Size of each Winter", start_winter, end_winter)
     else:
         print("Invalid type.")
 
@@ -165,7 +171,7 @@ def iterative_x_largest_snowfall_events_average(type, data_dict, station_names, 
     if type == "1b1":
         one_by_one_func_analysis_parametered(data_dict, station_names, func.x_largest_snowfall_events_average, x, start_winter, end_winter)
     elif type == "grid":
-        grid_func_analysis_parametered(data_dict, station_names, func.x_largest_snowfall_events_average, x, f"Average {x}-Largest Snowfall Events of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+        grid_func_analysis_parametered(data_dict, station_names, func.x_largest_snowfall_events_average, x, f"Average of {x}-Largest Snowfall Event Sizes each Winter", start_winter, end_winter)
     else:
         print("Invalid type.")
 
@@ -174,7 +180,7 @@ def iterative_percentage_largest_snowfall_events_average(type, data_dict, statio
     if type == "1b1":
         one_by_one_func_analysis_parametered(data_dict, station_names, func.percentage_largest_snowfall_events_average, percentage, start_winter, end_winter)
     elif type == "grid":
-        grid_func_analysis_parametered(data_dict, station_names, func.percentage_largest_snowfall_events_average, percentage, f"Average Top {percentage}% Snowfall Events of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+        grid_func_analysis_parametered(data_dict, station_names, func.percentage_largest_snowfall_events_average, percentage, f"Average of Top {percentage}% Snowfall Events each Winter", start_winter, end_winter)
     else:
         print("Invalid type.")
 
@@ -183,7 +189,7 @@ def iterative_season_total_swr(type, data_dict, station_names, start_winter = No
     if type == "1b1":
         one_by_one_func_analysis_parametered(data_dict, station_names, func.season_total_swr, include_estimated_precip, start_winter, end_winter)
     elif type == "grid":
-        grid_func_analysis_parametered(data_dict, station_names, func.season_total_swr, include_estimated_precip, f"Season Total Snow Water Ratio of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+        grid_func_analysis_parametered(data_dict, station_names, func.season_total_swr, include_estimated_precip, f"Season Total Snow Water Ratio of each Winter", start_winter, end_winter)
     else:
         print("Invalid type.")
 
@@ -192,7 +198,7 @@ def iterative_average_days_with_snow(type, data_dict, station_names, start_winte
     if type == "1b1":
         one_by_one_func(data_dict, station_names, func.average_days_with_snow, start_winter, end_winter)
     elif type == "grid":
-        grid_func_analysis(data_dict, station_names, func.average_days_with_snow, f"Number of Snow days each Winter of {len(data_dict)} Colorado Stations", start_winter, end_winter)
+        grid_func_analysis(data_dict, station_names, func.average_days_with_snow, f"Number of Measurable Snow Events each Winter", start_winter, end_winter)
     else:
         print("Invalid type.")
 
@@ -254,17 +260,6 @@ def plot_map(data_dict, station_names, title, given_function, given_parameter=No
     shapename = 'admin_1_states_provinces_lakes'
     feature = cartopy.feature.NaturalEarthFeature(name=shapename, scale='110m', category='cultural', facecolor= (0.9375, 0.9375, 0.859375), edgecolor='black')
     ax.add_feature(feature)
-    
-    # raster_path = "C:\\Users\\swguo\\VSCode Projects\\Snow Research\\HYP_HR_SR_W\\HYP_HR_SR_W.tif"
-    # ds = gdal.Open(raster_path)
-    # data = ds.ReadAsArray()
-    # gt = ds.GetGeoTransform()
-    # proj = ds.GetProjection()
-    # inproj = osr.SpatialReference()
-    # inproj.ImportFromWkt(proj)
-    # projcs = inproj.GetAuthorityCode('PROJCS')
-    # projection = ccrs.epsg(projcs)
-    # ax.add_raster(projection)
 
     fig.suptitle(get_grid_title(title, start_winter, end_winter))
 
@@ -280,18 +275,62 @@ def plot_map(data_dict, station_names, title, given_function, given_parameter=No
     plt.show()
 
 
+def plot_raster():
+
+    raster_path = "C:\\Users\\swguo\\VSCode Projects\\Snow Research\\US Physical Features\\CONUS-Natural-Color-Relief-Hydro\\CONUS_Natural_Color_Relief_Hydro.tif"
+    im = Image.open(raster_path)
+
+
+    fig = plt.figure()
+    projection_aa = ccrs.AlbersEqualArea(central_longitude=-96, central_latitude=23, standard_parallels=(29.5, 45.5))
+    ax = fig.add_axes([0, 0, 1, 1], projection=projection_aa, frameon=True) # Sets background (projection type)
+
+    #extent_ax = [-109.046667, -102.046667, 37, 41]
+    #ax.set_extent(extent_ax, ccrs.Geodetic())
+
+    #extent_trans = projection_aa.transform_points(ccrs.Geodetic(), np.array([-109.046667, -102.046667]), np.array([37, 41]))
+    #extent_img = (extent_trans[0][0], extent_trans[1][0], extent_trans[0][1], extent_trans[1][1])
+
+    shapename = 'admin_1_states_provinces_lakes'
+    states_shp = shpreader.natural_earth(resolution='110m',
+                                          category='cultural', name=shapename)
+    ax.add_geometries(shpreader.Reader(states_shp).geometries(), ccrs.PlateCarree())
+
+    
+    im = im.crop((3000, 2000, 6000, 8000))
+    image = ax.imshow(im, origin='upper', transform=projection_aa)
+    
+    #plt.xlim(-10.046667, -10200.046667)
+    #plt.ylim(37, 10000)
+
     
 
+    
+    
+    plt.show()
+
 #%% Code Running
-return_value = dp.import_all_rd(True, False, True)
-all_data = return_value["all_data"]["all_station_dict"] #48 stations
-all_station_names = return_value["all_data"]["all_station_names"] #48 stations
+
+def prepare_telluride_hermit(map_data):
+    #Cutoff telluride years: >= 1912
+    telluride_data = map_data["TELLURIDE 4WNW"]
+    telluride_data = telluride_data[telluride_data["winter_year"] >= 1912]
+    #Filter hermit 1993-2000
+    hermit_data = map_data["HERMIT 7 ESE"]
+    hermit_data["snow"] = np.where(((hermit_data["winter_year"] >= 1993) & (hermit_data["winter_year"] <= 2000)) | (hermit_data["winter_year"] == 2017), np.nan, hermit_data["snow"])
+
+    return telluride_data, hermit_data
+
+return_value = dp.import_all_rd(False, False, True)
+#all_data = return_value["all_data"]["all_station_dict"] #48 stations
+#all_station_names = return_value["all_data"]["all_station_names"] #48 stations
 
 #sane_data = return_value["sane_data"]["sane_station_dict"] #12 stations
 #sane_station_names = return_value["sane_data"]["sane_station_names"] #12 stations
 
-map_data = return_value["map_data"]["map_station_dict"] #4 stations
-map_station_names = return_value["map_data"]["map_station_names"] #4 stations
+map_data = return_value["map_data"]["map_station_dict"] #3 stations
+map_station_names = return_value["map_data"]["map_station_names"] #3 stations
+map_data["TELLURIDE 4WNW"], map_data["HERMIT 7 ESE"] = prepare_telluride_hermit(map_data)
 
 start_winter = 1961
 end_winter = 2022
@@ -300,11 +339,15 @@ percentage = 20
 include_estimated_precip = True
 
 
-#iterative_all_functions("grid", map_data, map_station_names)
-#iterative_season_total_swr("grid", map_data, map_station_names, start_winter, end_winter)
-plot_map(all_data, all_station_names, f"Change in Average Snowfall of {len(all_station_names)} Colorado Stations", func.average_snowfall_events)
 
-#iterative_all_functions("1b1", map_data, map_station_names, start_winter, end_winter, check_and_all=False)
+#plot_map(sane_data, sane_station_names, f"Change in Average Snowfall of {len(sane_station_names)} Colorado Stations", func.average_snowfall_events, 
+#         start_winter=None, end_winter=None)
+
+#iterative_all_functions("grid", sane_data, sane_station_names, check_and_all=True)
+
+iterative_all_functions("grid", map_data, map_station_names, end_winter=end_winter, check_and_all=True)
 #one_by_one_all_functions_grouped_by_station(map_data, map_station_names, start_winter, end_winter)
 
 
+
+# %%

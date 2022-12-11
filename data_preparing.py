@@ -31,7 +31,7 @@ def import_all_rd(all_data: bool, sane_data: bool, map_data: bool):
 
     sane_station_names = ["Colorado - Colorado Drainage Basin Climate Division","TELLURIDE 4WNW","LA VETA PASS","HERMIT 7 ESE","GRAND LAKE 6 SSW",
                     "WOLF CREEK PASS 1 E","RUXTON PARK","MEREDITH","RIO GRANDE RSVR","LEMON DAM","VAIL","HOURGLASS RSVR"]
-    map_station_names = ["Colorado - Colorado Drainage Basin Climate Division","TELLURIDE 4WNW","HERMIT 7 ESE","RUXTON PARK"]
+    map_station_names = ["TELLURIDE 4WNW","HERMIT 7 ESE","RUXTON PARK"]
     list = {}
 
     # Setup all data

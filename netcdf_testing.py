@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 import netCDF4 as nc
 import xarray as xr 
 
-constants = dp.import_from_source("RALconus4km_wrf_constants.nc")
-snow_acc_control_2000q4 = dp.import_from_source("wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc")
+#constants = dp.import_from_source("RALconus4km_wrf_constants.nc")
+#snow_acc_control_2000q4 = dp.import_from_source("wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc")
 
 
 # BASIC NETCDF4 PACKAGE
@@ -31,7 +31,8 @@ snow_acc_control_2000q4 = dp.import_from_source("wrf2d_d01_CTRL_SNOW_ACC_NC_2000
 
 
 # XARRAY (update this into data_importing.py)
-xr_snow_acc_control_2000q4:xr.Dataset = xr.open_dataset("C:\\Users\\swguo\\VSCode Projects\\Snow Research\\wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc")
+url = "https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/2001/wrf2d_d01_CTRL_ACLWDNBC_200101-200103.nc"
+xr_snow_acc_control_2000q4:xr.Dataset = xr.open_dataset(url)
 print(xr_snow_acc_control_2000q4.info)
 # Data: print(xr_snow_acc_control_2000q4["SNOW_ACC_NC"].data)
 print("\n\n\n\n\n")
