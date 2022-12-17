@@ -64,7 +64,7 @@ def basic_plot(x_axis, y_axis, x_label=None, y_label=None, title=None, color=Non
 # FUNCTIONS ------------------------------------------------------------------------------------------------------------------
 
 #%% "ALL" FUNCTIONS, CHECK DAYS ------------------------------------------------------------------------------------------------------------------
-def all_functions(data: pd.DataFrame, start_winter=None, end_winter=None, x:int = 10, percentage:int = 20, swr_include_estimated_precip:bool = True, check_and_all = False):
+def all_functions(data: pd.DataFrame, start_winter=None, end_winter=None, x:int = 10, percentage:int = 20, swr_include_estimated_precip:bool = True, threshold:float = 10, check_and_all = False):
 
     """Call all functions."""
     """If start/end winters are not given, then they are inferred in the child function from the second and second-to-last year."""
@@ -85,7 +85,7 @@ def all_functions(data: pd.DataFrame, start_winter=None, end_winter=None, x:int 
     x_largest_snowfall_events_average(data, start_winter, end_winter, x)
     percentage_largest_snowfall_events_average(data, start_winter, end_winter, percentage)
     season_total_swr(data, start_winter, end_winter, swr_include_estimated_precip)
-    average_days_with_snow(data, start_winter, end_winter)
+    number_days_with_snow(data, start_winter, end_winter, threshold)
 
 
 def check_days(data: pd.DataFrame, start_winter=None, end_winter=None, show: bool = True):
@@ -396,7 +396,7 @@ def season_total_swr(data: pd.DataFrame, start_winter=None, end_winter=None, inc
     return dict
 
 
-def average_days_with_snow(data: pd.DataFrame, start_winter=None, end_winter=None, show:bool=True, figtext:bool=True):
+def number_days_with_snow(data: pd.DataFrame, start_winter=None, end_winter=None, threshold:float=0, show:bool=True, figtext:bool=True):
     """Takes data and graphs the total number of days with snow each year.\n\nThe data has to have year and snow columns."""
     start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
     years_axis = np.arange(start_winter, end_winter + 1)
@@ -404,13 +404,16 @@ def average_days_with_snow(data: pd.DataFrame, start_winter=None, end_winter=Non
 
     for y in range(start_winter, end_winter + 1):
         current_winter_data = data[data["winter_year"] == y]
-        current_winter_snow_days = current_winter_data[current_winter_data["snow"] > 0]
+        current_winter_snow_days = current_winter_data[current_winter_data["snow"] > threshold]
         
         days_axis = np.append(days_axis, len(current_winter_snow_days))
 
     years_axis, days_axis = remove_nan_zero_years(years_axis, days_axis)
     station_name = data["station_name"].iloc[0]
-    title = f"{station_name}: Number of Measureable Snow Events each Winter from {start_winter}-{end_winter}"
+    if threshold == 0:
+        title = f"{station_name}: Number of Measureable Snow Events each Winter from {start_winter}-{end_winter}"
+    else:
+        title = f"{station_name}: Number of Snow Events Over {threshold} in. each Winter from {start_winter}-{end_winter}"
     dict = linreg(years_axis, days_axis, title, "green")
     
     basic_plot(years_axis, days_axis, "Year", "# Events", title, "cornflowerblue", "o", "")
@@ -424,4 +427,5 @@ def average_days_with_snow(data: pd.DataFrame, start_winter=None, end_winter=Non
         plt.show()
 
     return dict
+
 

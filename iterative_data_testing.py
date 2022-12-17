@@ -194,16 +194,22 @@ def iterative_season_total_swr(type, data_dict, station_names, start_winter = No
         print("Invalid type.")
 
 
-def iterative_average_days_with_snow(type, data_dict, station_names, start_winter = None, end_winter = None):
+def iterative_number_days_with_snow(type, data_dict, station_names, start_winter = None, end_winter = None, threshold: float = 0):
     if type == "1b1":
-        one_by_one_func(data_dict, station_names, func.average_days_with_snow, start_winter, end_winter)
+        one_by_one_func(data_dict, station_names, func.number_days_with_snow, start_winter, end_winter)
     elif type == "grid":
-        grid_func_analysis(data_dict, station_names, func.average_days_with_snow, f"Number of Measurable Snow Events each Winter", start_winter, end_winter)
+        title = ""
+        if threshold == 0:
+            title = f"Number of Measurable Snow Events each Winter"
+        else:
+            title = f"Number of Snow Events Over {threshold} in. each Winter"
+        grid_func_analysis_parametered(data_dict, station_names, func.number_days_with_snow, threshold, title, start_winter, end_winter)
     else:
         print("Invalid type.")
 
 
-def iterative_all_functions(type, data_dict, station_names, start_winter=None, end_winter=None, include_estimated_precip: bool = True, x: int = 10, percentage: int = 20, check_and_all = False):
+def iterative_all_functions(type, data_dict, station_names, start_winter=None, end_winter=None, 
+                            include_estimated_precip: bool = True, x: int = 10, percentage: int = 20, threshold: float = 0, check_and_all = False):
     if check_and_all:
         iterative_check_days_temp_precip_snowfall(type, data_dict, station_names, start_winter, end_winter)
         
@@ -214,7 +220,7 @@ def iterative_all_functions(type, data_dict, station_names, start_winter=None, e
     iterative_x_largest_snowfall_events_average(type, data_dict, station_names, start_winter, end_winter, x)
     iterative_percentage_largest_snowfall_events_average(type, data_dict, station_names, start_winter, end_winter, percentage)
     iterative_season_total_swr(type, data_dict, station_names, start_winter, end_winter, include_estimated_precip)
-    iterative_average_days_with_snow(type, data_dict, station_names, start_winter, end_winter)
+    iterative_number_days_with_snow(type, data_dict, station_names, start_winter, end_winter, threshold)
 
 
 def one_by_one_all_functions_grouped_by_station(data_dict, station_names, start_winter = None, end_winter = None):
@@ -321,12 +327,12 @@ def prepare_telluride_hermit(map_data):
 
     return telluride_data, hermit_data
 
-return_value = dp.import_all_rd(False, False, True)
+return_value = dp.import_all_rd(False, True, True)
 #all_data = return_value["all_data"]["all_station_dict"] #48 stations
 #all_station_names = return_value["all_data"]["all_station_names"] #48 stations
 
-#sane_data = return_value["sane_data"]["sane_station_dict"] #12 stations
-#sane_station_names = return_value["sane_data"]["sane_station_names"] #12 stations
+sane_data = return_value["sane_data"]["sane_station_dict"] #12 stations
+sane_station_names = return_value["sane_data"]["sane_station_names"] #12 stations
 
 map_data = return_value["map_data"]["map_station_dict"] #3 stations
 map_station_names = return_value["map_data"]["map_station_names"] #3 stations
@@ -340,14 +346,13 @@ include_estimated_precip = True
 
 
 
-#plot_map(sane_data, sane_station_names, f"Change in Average Snowfall of {len(sane_station_names)} Colorado Stations", func.average_snowfall_events, 
-#         start_winter=None, end_winter=None)
+#plot_map(map_data, map_station_names, f"Average Temperature of {len(map_station_names)} Colorado Stations", func.average_temperature, 
+#         start_winter=start_winter, end_winter=end_winter)
 
-#iterative_all_functions("grid", sane_data, sane_station_names, check_and_all=True)
 
+#iterative_number_days_with_snow("grid", map_data, map_station_names, end_winter=end_winter)
 iterative_all_functions("grid", map_data, map_station_names, end_winter=end_winter, check_and_all=True)
 #one_by_one_all_functions_grouped_by_station(map_data, map_station_names, start_winter, end_winter)
 
 
 
-# %%
