@@ -95,7 +95,9 @@ def grid_func_analysis(data_dict, station_names, given_function, grid_title, sta
         dict = given_function(current_station, start_winter=start_winter, end_winter=end_winter, show=False, figtext=False)
         start_winter_current, end_winter_current = func.get_start_end_winter_years(current_station, start_winter, end_winter)
         plt.title(get_grid_title(current_station_name, start_winter_current, end_winter_current, True))
-        plt.text(0.4,0.08, f"p={dict['p-value']}; total change={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
+        #text = f"p={dict['p-value']}; total change={dict['total_change']}; % change={dict['percentage_change']}"
+        text = f"p={dict['p-value']}; total change={dict['total_change']}"
+        plt.text(0.4,0.08, text, horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
 
         graph_counter += 1
 
@@ -116,8 +118,10 @@ def grid_func_analysis_parametered(data_dict, station_names, given_function, giv
         dict = given_function(current_station, start_winter, end_winter, given_parameter, show=False, figtext=False)
         start_winter_current, end_winter_current = func.get_start_end_winter_years(current_station, start_winter, end_winter)
         plt.title(get_grid_title(current_station_name, start_winter_current, end_winter_current, True))
-        plt.text(0.4,0.08, f"p={dict['p-value']}; total change={dict['total_change']}", horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
-
+        #text = f"p={dict['p-value']}; total change={dict['total_change']}; % change={dict['percentage_change']}"
+        text = f"p={dict['p-value']}; total change={dict['total_change']}"
+        plt.text(0.4,0.08, text, verticalalignment='center', transform=current_axes.transAxes)
+        
         graph_counter += 1
 
     plt.show()
@@ -351,7 +355,8 @@ include_estimated_precip = True
 
 
 #iterative_number_days_with_snow("grid", map_data, map_station_names, end_winter=end_winter)
-iterative_all_functions("grid", map_data, map_station_names, end_winter=end_winter, check_and_all=True)
+iterative_all_functions("grid", map_data, map_station_names, end_winter=end_winter, check_and_all=False)
+#iterative_percentage_largest_snowfall_events_average("grid", map_data, map_station_names, end_winter=end_winter, percentage=50)
 #one_by_one_all_functions_grouped_by_station(map_data, map_station_names, start_winter, end_winter)
 
 
