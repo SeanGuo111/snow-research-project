@@ -227,6 +227,37 @@ def largest_snowfall_events(data: pd.DataFrame, start_winter=None, end_winter=No
 
     return dict
 
+def total_snow(data: pd.DataFrame, start_winter=None, end_winter=None, show:bool=True, figtext:bool=True):
+    """Takes data and graphs the total amount of snowfall each year.\n\nThe data has to have year and snow columns."""
+    start_winter, end_winter = get_start_end_winter_years(data, start_winter, end_winter)
+    years_axis = np.arange(start_winter, end_winter + 1)
+    totals_axis = np.array([])
+
+    for y in range(start_winter, end_winter + 1):
+        current_winter_data = data[data["winter_year"] == y]
+        current_winter_snowfall = current_winter_data["snow"]
+        
+        total = np.sum(current_winter_snowfall.max())
+        totals_axis = np.append(totals_axis, total)
+
+    years_axis, totals_axis = remove_nan_zero_years(years_axis, totals_axis)
+    station_name = data["station_name"].iloc[0]
+    
+    title = f"{station_name}: Total Snowfall each Winter from {start_winter}-{end_winter}"
+    
+    dict = linreg(years_axis, totals_axis, title, "green")
+    
+    basic_plot(years_axis, totals_axis, "Year", "Snowfall (in)", title, "cornflowerblue", "o", "")
+    plt.xlim(start_winter, end_winter)
+    plt.ylim(bottom=0)
+    
+    if figtext:
+        plt.figtext(0.65, 0.20, f"p-value: {dict['p-value']}")
+        plt.figtext(0.65, 0.15, f"total change: {dict['total_change']}")
+    if show:
+        plt.show()
+
+    return dict
 
 def average_snowfall_events(data: pd.DataFrame, start_winter=None, end_winter=None, show: bool=True, figtext:bool=True):
     """Takes data and graphs the average snowfall event from each winter.\n\nThe data has to have winter_year and snow columns. Start/end winter can be None."""
@@ -427,5 +458,6 @@ def number_days_with_snow(data: pd.DataFrame, start_winter=None, end_winter=None
         plt.show()
 
     return dict
+
 
 

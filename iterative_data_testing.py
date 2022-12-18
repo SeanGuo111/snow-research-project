@@ -95,8 +95,8 @@ def grid_func_analysis(data_dict, station_names, given_function, grid_title, sta
         dict = given_function(current_station, start_winter=start_winter, end_winter=end_winter, show=False, figtext=False)
         start_winter_current, end_winter_current = func.get_start_end_winter_years(current_station, start_winter, end_winter)
         plt.title(get_grid_title(current_station_name, start_winter_current, end_winter_current, True))
-        #text = f"p={dict['p-value']}; total change={dict['total_change']}; % change={dict['percentage_change']}"
-        text = f"p={dict['p-value']}; total change={dict['total_change']}"
+        text = f"p={dict['p-value']}; total change={dict['total_change']}; % change={dict['percentage_change']}"
+        #text = f"p={dict['p-value']}; total change={dict['total_change']}"
         plt.text(0.4,0.08, text, horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
 
         graph_counter += 1
@@ -118,9 +118,9 @@ def grid_func_analysis_parametered(data_dict, station_names, given_function, giv
         dict = given_function(current_station, start_winter, end_winter, given_parameter, show=False, figtext=False)
         start_winter_current, end_winter_current = func.get_start_end_winter_years(current_station, start_winter, end_winter)
         plt.title(get_grid_title(current_station_name, start_winter_current, end_winter_current, True))
-        #text = f"p={dict['p-value']}; total change={dict['total_change']}; % change={dict['percentage_change']}"
-        text = f"p={dict['p-value']}; total change={dict['total_change']}"
-        plt.text(0.4,0.08, text, verticalalignment='center', transform=current_axes.transAxes)
+        text = f"p={dict['p-value']}; total change={dict['total_change']}; % change={dict['percentage_change']}"
+        #text = f"p={dict['p-value']}; total change={dict['total_change']}"
+        plt.text(0.4,0.08, text, horizontalalignment='center', verticalalignment='center', transform=current_axes.transAxes)
         
         graph_counter += 1
 
