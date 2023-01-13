@@ -161,6 +161,13 @@ def iterative_largest_snowfall_events(type, data_dict, station_names, start_wint
     else:
         print("Invalid type.")
 
+def iterative_total_snowfall(type, data_dict, station_names, start_winter = None, end_winter = None):
+    if type == "1b1":
+        one_by_one_func(data_dict, station_names, func.total_snowfall, start_winter, end_winter)
+    elif type == "grid":
+        grid_func_analysis(data_dict, station_names, func.total_snowfall, f"Total Snowfall of each Winter", start_winter, end_winter)
+    else:
+        print("Invalid type.")
 
 def iterative_average_snowfall_events(type, data_dict, station_names, start_winter = None, end_winter = None):
     if type == "1b1":
@@ -219,6 +226,7 @@ def iterative_all_functions(type, data_dict, station_names, start_winter=None, e
         
     iterative_average_temperature(type, data_dict, station_names, start_winter, end_winter)
     iterative_largest_snowfall_events(type, data_dict, station_names, start_winter, end_winter)
+    iterative_total_snowfall(type, data_dict, station_names, start_winter, end_winter)
     iterative_average_snowfall_events(type, data_dict, station_names, start_winter, end_winter)
 
     iterative_x_largest_snowfall_events_average(type, data_dict, station_names, start_winter, end_winter, x)
