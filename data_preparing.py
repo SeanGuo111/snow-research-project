@@ -66,27 +66,6 @@ def import_all_rd(all_data: bool, sane_data: bool, map_data: bool):
     return list
 
 
-# Shouldn't need this at the moment.
-# def import_all_data():
-#     """Imports all data, returned as a dictionary"""
-#     data_dict = {}
-
-#     breck_file_name = "Breckenridge RD.txt"
-#     data_dict["breck_data"] = import_from_source(breck_file_name)
-
-#     leadville_file_name = "Leadville 2SW RD.txt"
-#     data_dict["leadville_data"] = import_from_source(leadville_file_name)
-
-#     telluride_file_name = "Telluride RD.txt"
-#     data_dict["telluride_data"] = import_from_source(telluride_file_name)
-
-#     constants_file_name = "RALconus4km_wrf_constants.nc"
-#     data_dict["constants"] = import_from_source(constants_file_name)
-
-#     snow_acc_control_2000q4_file_name = "wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc"
-#     data_dict["snow_acc_control_2000q4"] = import_from_source(snow_acc_control_2000q4_file_name)
-
-#     return data_dict
 
 #%% FORMATTING --------------------------------------------------------------------------------------------------------------------------
 def date_to_winter(date: datetime):
