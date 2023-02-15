@@ -22,19 +22,20 @@ def get_closest_ij(x_lat: np.ndarray, x_long: np.ndarray, given_lat_pt, given_lo
 
 
 dataset_ctrl_2000q4: xr.DataArray = xr.open_dataset("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/2000/wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc")
-# Another:
-# dataset_pgw_2000q4 = xr.open_dataset("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/PGW/2000/wrf2d_d01_PGW_SNOW_ACC_NC_200010-200012.nc")
+# Another: dataset_pgw_2000q4 = xr.open_dataset("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/PGW/2000/wrf2d_d01_PGW_SNOW_ACC_NC_200010-200012.nc")
 
 # Orientation
 print(dataset_ctrl_2000q4.info)
-x_lat = dataset_ctrl_2000q4["XLAT"]
-x_long = dataset_ctrl_2000q4["XLONG"]
+
 
 # Colorado bounds: -109.046667 W, -102.046667 W, 37 N, 41 N
 # Top left corner: (south_north 556, west_east 452) corresponds to (XLAT 40.987, XLONG -109.045). Both slightly inside colorado.
 # Bottom right corner: (south_north 435, west_east 591) corresponds to (XLAT 36.990, XLONG -102.036). Both slightly outside colorado.
 
-# Data retrieved using: return_val_tl = get_closest_ij(x_lat.data, x_long.data, 37, -102.0467)
+# Data retrieved using: 
+x_lat = dataset_ctrl_2000q4["XLAT"]
+x_long = dataset_ctrl_2000q4["XLONG"]
+return_val_tl = get_closest_ij(x_lat.data, x_long.data, 37, -102.0467)
 
 
 # sel for value selection, isel for index selection
