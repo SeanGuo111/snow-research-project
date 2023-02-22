@@ -1,6 +1,7 @@
 import netCDF4 as nc
 
 """
+NetCDF Structure:
 Dimensions and variables are both dictionaries. 
 
 1. Dimensions are axes of the data 
@@ -10,6 +11,16 @@ Dimensions and variables are both dictionaries.
     Dimensions are just name/numbers while coordinates are vectors
     Essentially, Dimensions are names of the axes, coordinates are the tick labels
 4. Attributes: ancillary/metadata
+
+Dask reading:
+Dataset.load() converts all variables to eager dataarrays
+    Eager dataarray memory is always available, lazy dask memory is available on-request
+    Can be slow, as is converting everything
+DaskArray.values returns a variable's temporary numpy array
+np.asarray(DaskArray) returns variable's explicitly converted numpy array
+
+
+
 """
 
 # NetCDF4 Library Testing:
