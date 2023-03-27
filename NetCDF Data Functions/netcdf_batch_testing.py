@@ -20,37 +20,51 @@ def get_closest_ij(x_lat: np.ndarray, x_long: np.ndarray, given_lat_pt, given_lo
     return np.unravel_index(minindex_flattened, x_lat.shape)
 
 
-def get_ctrl_url_list(include_timestrs: bool = False):
+def get_ctrl_url_list(every_24_hr: bool = True, include_timestrs: bool = True):
     """Retrieves list of all CTRL urls."""
-    url_start = "https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/"
-    url_timestr_constraint = ",Times[0:24:2207]"
-    # Set this up later
-
-    # Starts with year 2000 anomaly as it only has 10-12
-    ctrl_url_list = ["https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/2000/wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc?SNOW_ACC_NC[0:24:2207][435:556][452:591],Times[0:24:2207]"]
+    """every_24_hr sets the function sets to function to subset to every 24 hrs of the dataset, at each midnight. """
+    """include_timestrs sets the function to include another data variable which gives a formatted date. """
     
+    ctrl_url_list = []
+    num_hrs_list = [2159, 2183, 2207, 2207]
     
-    # Excludes 2000 and 2013 anomalies
+    # Date range list setting
+    date_range_list = ["200010-200012"]
     for year in range(2001, 2013):
-        current_url = url_start
-        current_url += f"{year}/"
+        for quarter in range(0, 4): 
+            start_month = str((3*quarter) + 1)
+            end_month = str((3*quarter) + 3)
+            if start_month != "10":
+                start_month = "0" + start_month
+                end_month = "0" + end_month
 
+            date_range = f"{year}{start_month}-{year}{end_month}"
+            date_range_list.append(date_range)
+    date_range_list.append("201301-201303")
+    date_range_list.append("201304-201306")
+    date_range_list.append("201307-201309")
+
+    url_start = "https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/"
+    
+    for date_range in date_range_list:
+        year = int(date_range[0:4])
+        quarter = int((int(date_range[4:6]) - 1)/3)
         
-        # For leap year
-        if (year % 4 == 0):
-            ctrl_url_list.append(current_url + f"wrf2d_d01_CTRL_SNOW_ACC_NC_{year}01-{year}03.nc?SNOW_ACC_NC[0:24:2183][435:556][452:591],Times[0:24:2183]")
-        else:
-            ctrl_url_list.append(current_url + f"wrf2d_d01_CTRL_SNOW_ACC_NC_{year}01-{year}03.nc?SNOW_ACC_NC[0:24:2159][435:556][452:591],Times[0:24:2159]")
+        current_url = url_start
+        current_url += f"{year}/wrf2d_d01_CTRL_SNOW_ACC_NC_"
 
-        ctrl_url_list.append(current_url + f"wrf2d_d01_CTRL_SNOW_ACC_NC_{year}04-{year}06.nc?SNOW_ACC_NC[0:24:2183][435:556][452:591],Times[0:24:2183]")
-        ctrl_url_list.append(current_url + f"wrf2d_d01_CTRL_SNOW_ACC_NC_{year}07-{year}09.nc?SNOW_ACC_NC[0:24:2207][435:556][452:591],Times[0:24:2207]")
-        ctrl_url_list.append(current_url + f"wrf2d_d01_CTRL_SNOW_ACC_NC_{year}10-{year}12.nc?SNOW_ACC_NC[0:24:2207][435:556][452:591],Times[0:24:2207]")
+        number_hrs = num_hrs_list[quarter]
+        if (year % 4 == 0 and quarter == 0):
+            number_hrs = 2183
+            
+        current_url += f"{date_range}.nc?SNOW_ACC_NC[0:24:{number_hrs}][435:556][452:591]"
+        
+        if (include_timestrs):
+            current_url += f",Times[0:24:{number_hrs}]"
+        
+        print(current_url)
+        ctrl_url_list.append(current_url)
 
-
-    # 2013 anomaly (all excluding 10-12)
-    ctrl_url_list.append("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/2013/wrf2d_d01_CTRL_SNOW_ACC_NC_201301-201303.nc?SNOW_ACC_NC[0:24:2159][435:556][452:591],Times[0:24:2159]")
-    ctrl_url_list.append("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/2013/wrf2d_d01_CTRL_SNOW_ACC_NC_201304-201306.nc?SNOW_ACC_NC[0:24:2183][435:556][452:591],Times[0:24:2183]")
-    ctrl_url_list.append("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/2013/wrf2d_d01_CTRL_SNOW_ACC_NC_201307-201309.nc?SNOW_ACC_NC[0:24:2207][435:556][452:591],Times[0:24:2207]")
     return ctrl_url_list
 
 def get_index_from_date(year, start_month):
