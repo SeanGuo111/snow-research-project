@@ -20,14 +20,20 @@ def get_closest_ij(x_lat: np.ndarray, x_long: np.ndarray, given_lat_pt, given_lo
     return np.unravel_index(minindex_flattened, x_lat.shape)
 
 
-def get_ctrl_url_list(every_24_hr: bool = True, include_timestrs: bool = True):
-    """Retrieves list of all CTRL urls."""
+def get_url_list(set_name: str, every_24_hr: bool = True, include_timestrs: bool = True):
+    """Retrieves list of all WRF simulation urls."""
+    """set_name: 'CTRL' or 'PGW'"""
     """every_24_hr sets the function sets to function to subset to every 24 hrs of the dataset, at each midnight. """
     """include_timestrs sets the function to include another data variable which gives a formatted date. """
     
     ctrl_url_list = []
     num_hrs_list = [2159, 2183, 2207, 2207]
     
+    url_start = f"https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/{set_name}/"
+    every_24_hr_time_constraint = ""
+    if every_24_hr:
+        every_24_hr_time_constraint = ":24"
+
     # Date range list setting
     date_range_list = ["200010-200012"]
     for year in range(2001, 2013):
@@ -42,27 +48,26 @@ def get_ctrl_url_list(every_24_hr: bool = True, include_timestrs: bool = True):
             date_range_list.append(date_range)
     date_range_list.append("201301-201303")
     date_range_list.append("201304-201306")
-    date_range_list.append("201307-201309")
-
-    url_start = "https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/"
+    date_range_list.append("201307-201309")    
     
     for date_range in date_range_list:
         year = int(date_range[0:4])
         quarter = int((int(date_range[4:6]) - 1)/3)
         
         current_url = url_start
-        current_url += f"{year}/wrf2d_d01_CTRL_SNOW_ACC_NC_"
+        current_url += f"{year}/wrf2d_d01_{set_name}_SNOW_ACC_NC_"
 
+        # Hours
         number_hrs = num_hrs_list[quarter]
         if (year % 4 == 0 and quarter == 0):
             number_hrs = 2183
-            
-        current_url += f"{date_range}.nc?SNOW_ACC_NC[0:24:{number_hrs}][435:556][452:591]"
+        
+        # To do: make every_24_hrs work and enable switching between ctrl/pgw    
+        current_url += f"{date_range}.nc?SNOW_ACC_NC[0{every_24_hr_time_constraint}:{number_hrs}][435:556][452:591]"
         
         if (include_timestrs):
-            current_url += f",Times[0:24:{number_hrs}]"
+            current_url += f",Times[0{every_24_hr_time_constraint}:{number_hrs}]"
         
-        print(current_url)
         ctrl_url_list.append(current_url)
 
     return ctrl_url_list
@@ -83,11 +88,13 @@ def get_index_from_date(year, start_month):
 # print(dataset_ctrl_2000q4_subsetted.info)
 
 # Complete data
-ctrl_url_list = get_ctrl_url_list()
-all_data: xr.Dataset = xr.open_mfdataset(ctrl_url_list, concat_dim="Time", combine="nested")
-print(all_data.info)
+ctrl_url_list = get_url_list(set_name="CTRL")
+all_ctrl_data: xr.Dataset = xr.open_mfdataset(ctrl_url_list, concat_dim="Time", combine="nested")
+print(all_ctrl_data.info)
 
-
+pgw_url_list = get_url_list(set_name="PGW")
+all_pgw_data: xr.Dataset = xr.open_mfdataset(pgw_url_list, concat_dim="Time", combine="nested")
+print(all_pgw_data.info)
 
 # Mapping
 # ax = plt.axes(projection=ccrs.LambertConformal())
