@@ -35,8 +35,8 @@ def get_url_list(set_name: str, every_24_hr: bool = True, include_timestrs: bool
         every_24_hr_time_constraint = ":24"
 
     # Date range list setting
-    date_range_list = ["200010-200012"]
-    for year in range(2001, 2013):
+    date_range_list = ["200504-200506", "200507-200509", "200510-200512"]
+    for year in range(2006, 2013): # missing data in PGW 200501-200503
         for quarter in range(0, 4): 
             start_month = str((3*quarter) + 1)
             end_month = str((3*quarter) + 3)
@@ -62,7 +62,6 @@ def get_url_list(set_name: str, every_24_hr: bool = True, include_timestrs: bool
         if (year % 4 == 0 and quarter == 0):
             number_hrs = 2183
         
-        # To do: make every_24_hrs work and enable switching between ctrl/pgw    
         current_url += f"{date_range}.nc?SNOW_ACC_NC[0{every_24_hr_time_constraint}:{number_hrs}][435:556][452:591]"
         
         if (include_timestrs):

@@ -1,4 +1,5 @@
 import netCDF4 as nc
+import xarray as xr
 
 """
 NetCDF Structure:
@@ -24,15 +25,19 @@ np.asarray(DaskArray) returns variable's explicitly converted numpy array
 """
 
 # NetCDF4 Library Testing:
-snow_acc_control_2000q4 = nc.Dataset("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/2000/wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc")
-snow_acc_warm_2000q4 = nc.Dataset("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/PGW/2000/wrf2d_d01_PGW_SNOW_ACC_NC_200010-200012.nc")
+# snow_acc_control_2000q4 = nc.Dataset("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/2000/wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc")
+# snow_acc_warm_2000q4 = nc.Dataset("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/PGW/2000/wrf2d_d01_PGW_SNOW_ACC_NC_200010-200012.nc")
 
-print("CTRL: -------------")
-print(snow_acc_control_2000q4)
-print("\n\n\n")
-print("WARM DIMS: -------------")
-print(snow_acc_warm_2000q4.dimensions)
-print("\n\n\n")
-print("WARM VARS: -------------")
-print(snow_acc_warm_2000q4.variables)
-print("\n\n\n")
+# print("CTRL: -------------")
+# print(snow_acc_control_2000q4)
+# print("\n\n\n")
+# print("WARM DIMS: -------------")
+# print(snow_acc_warm_2000q4.dimensions)
+# print("\n\n\n")
+# print("WARM VARS: -------------")
+# print(snow_acc_warm_2000q4.variables)
+# print("\n\n\n")
+
+# Xarray Testing:
+test = xr.open_dataset("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/PGW/2005/wrf2d_d01_PGW_SNOW_ACC_NC_200501-200503.nc?SNOW_ACC_NC[0:24:2159][435:556][452:591],Times[0:24:2159]")
+print(test.info)
