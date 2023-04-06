@@ -20,7 +20,12 @@ Dataset.load() converts all variables to eager dataarrays
 DaskArray.values returns a variable's temporary numpy array
 np.asarray(DaskArray) returns variable's explicitly converted numpy array
 
-
+Xarray reading:
+DataArray.isel(dim1=index, dim2=index, ...) returns values found at the specified indices of dimensions/coordinates.
+DataArray.sel(dim1=label, dim2=label, ...) returns values found at the specified labels, or values, of coordinates.
+    For example: time_dim = [1/1, 1/2, 1/3, 1/22], in a DataArray called meteorology_data
+    meteorology_data.isel(time_dim = 2) gives equivalent value to meteorology_data.sel(time_dim = 1/3)
+Note: these functions cannot be used for writing DataArrays.
 
 """
 
