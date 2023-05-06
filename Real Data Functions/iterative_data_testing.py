@@ -339,12 +339,12 @@ def prepare_telluride_hermit(map_data):
 
     return telluride_data, hermit_data
 
-return_value = dp.import_all_rd(False, True, True)
-#all_data = return_value["all_data"]["all_station_dict"] #48 stations
-#all_station_names = return_value["all_data"]["all_station_names"] #48 stations
+return_value = dp.import_all_rd(False, False, True)
+# all_data = return_value["all_data"]["all_station_dict"] #48 stations
+# all_station_names = return_value["all_data"]["all_station_names"] #48 stations
 
-sane_data = return_value["sane_data"]["sane_station_dict"] #12 stations
-sane_station_names = return_value["sane_data"]["sane_station_names"] #12 stations
+# sane_data = return_value["sane_data"]["sane_station_dict"] #12 stations
+# sane_station_names = return_value["sane_data"]["sane_station_names"] #12 stations
 
 map_data = return_value["map_data"]["map_station_dict"] #3 stations
 map_station_names = return_value["map_data"]["map_station_names"] #3 stations
@@ -357,15 +357,16 @@ percentage = 20
 include_estimated_precip = True
 
 
-
-#plot_map(map_data, map_station_names, f"Average Temperature of {len(map_station_names)} Colorado Stations", func.average_temperature, 
-#         start_winter=start_winter, end_winter=end_winter)
+iterative_average_snowfall_events("1b1", map_data, map_station_names)
 
 
 #iterative_number_days_with_snow("grid", map_data, map_station_names, end_winter=end_winter)
-iterative_all_functions("grid", map_data, map_station_names, end_winter=end_winter, check_and_all=False)
+#iterative_all_functions("grid", map_data, map_station_names, end_winter=end_winter, check_and_all=False)
 #iterative_percentage_largest_snowfall_events_average("grid", map_data, map_station_names, end_winter=end_winter, percentage=50)
 #one_by_one_all_functions_grouped_by_station(map_data, map_station_names, start_winter, end_winter)
 
 
 
+
+
+# %%

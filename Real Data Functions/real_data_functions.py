@@ -60,6 +60,8 @@ def basic_plot(x_axis, y_axis, x_label=None, y_label=None, title=None, color=Non
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
 
 # FUNCTIONS ------------------------------------------------------------------------------------------------------------------
 
