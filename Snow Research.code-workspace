@@ -5,9 +5,10 @@
 		}
 	],
 	"settings": {
-		"terminal.integrated.cwd": "C:\\Users\\swguo\\VSCode Projects\\Snow Research",
+		"terminal.integrated.cwd": "c:\\Users\\swguo\\VSCode Projects\\Snow Research",
 		"python.defaultInterpreterPath": "C:\\Users\\swguo\\.conda\\envs\\conda_snow_research\\python.exe",
 		"python.terminal.activateEnvironment": true,
       	"python.terminal.activateEnvInCurrentTerminal": true
 	}
 }
+
