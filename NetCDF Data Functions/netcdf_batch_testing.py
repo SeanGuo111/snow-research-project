@@ -133,9 +133,8 @@ ctrl_times = all_ctrl_data["Times"].values # will need a .values() to unpack-- A
 ctrl_snow = all_ctrl_data["SNOW_ACC_NC"] # will need a .values() to unpack-- AFTER your specific, requested elements are selected for
 
 #Sanity check for times. NOTE that sel/isel actually doesn't matter, because Time (not Times) is a dimension, for which the index and label are the same.
-print(ctrl_times[0])
-print(ctrl_times[37248])
-print(ctrl_times[37249])
+print(ctrl_times[37271])
+print(ctrl_times[37272])
 
 #Sanity check for coords.
 verify_colorado_coordinate_bounds(all_ctrl_data)
