@@ -1,8 +1,6 @@
 import xarray as xr
 import numpy as np
 import pandas as pd
-import random
-import string
 
 
 """
@@ -10,7 +8,7 @@ Xarray: structure---------------------------------------------------------------
 DataArrays are built of 4 components:
     Data variables: NetCDF4-like variables based off of any number of dimensions
 
-    Dimensions: simply names for the dimensional axes which act as a basises to data variables and both kinds of coordinates. Can be thought of as a list like [0,1,2,3,...,*length-1*] (?)
+    Dimensions: simply names for the dimensional axes which act as a basises to data variables and both kinds of coordinates. Can be accessed and thought of as a list like [0,1,2,3,...,*length-1*] (?)
         Index selecting done by DataArray.isel()
 
     Dimension coordinates: ancillary data variables with the same name as a dimension, acting as a tick labeller for that dimension. Marked with stars when printing the DataArray
@@ -70,7 +68,7 @@ DataArray.loc[index1, index2, ...] returns a DataArray with labeled selecting, b
     meteorology_data.isel(time_dim = 1)
     meteorology_data.sel(time_dim = "b")
     meteorology_data[1]
-    meteorology_data.loc[1/3]
+    meteorology_data.loc["b"]
 
 Remark: almost all xarray functions work with DaskArrays. 
     As such, you should keep DaskArrays stored inside DataArrays, as getting their "raw" np/dask form would require loading them into memory
@@ -90,17 +88,24 @@ Best practice to select and read data would probably be to index DataArrays and 
 
 all_ctrl_data = xr.Dataset(data_vars={"SNOW_ACC_NC": (["Time", "south_north", "west_east"], np.ones((240, 97, 158)))},
                            coords={"Time": range(240)})
+print("Baseline data: =========================")
 print(all_ctrl_data)
-print()
+print("\n")
+
+original_snow_data = all_ctrl_data.SNOW_ACC_NC.data
+print(f"Original SNOW_ACC_NC data (len {len(original_snow_data)}): =========================")
+print(original_snow_data)
+print("\n")
 
 coarsened_snow_data = all_ctrl_data.SNOW_ACC_NC.coarsen(Time=24, boundary="exact").sum().data
-certain_dates = all_ctrl_data.drop("SNOW_ACC_NC").isel(Time=np.arange(0,240,24))
+print(f"Coarsened SNOW_ACC_NC data (len {len(coarsened_snow_data)}): =========================")
 print(coarsened_snow_data)
+print("\n")
+
+rest_of_data = all_ctrl_data.drop("SNOW_ACC_NC").isel(Time=np.arange(0,240,24))
+rest_of_data = rest_of_data.assign(SNOW_ACC_NC=(["Time", "south_north", "west_east"], coarsened_snow_data))
 print()
-print(certain_dates)
-certain_dates = certain_dates.assign(SNOW_ACC_NC=(["Time", "south_north", "west_east"], coarsened_snow_data))
-print()
-print(certain_dates)
+print(rest_of_data)
 
 # for current_iteration in range(iterations):
 #     left_index = (current_iteration * 24) + 1

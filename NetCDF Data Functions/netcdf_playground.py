@@ -14,8 +14,8 @@ Dimensions and variables are both dictionaries.
 4. Attributes: ancillary/metadata
 """
 
-snow_acc_control_2000q4 = nc.Dataset("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/2000/wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc")
-snow_acc_warm_2000q4 = nc.Dataset("https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/PGW/2000/wrf2d_d01_PGW_SNOW_ACC_NC_200010-200012.nc")
+snow_acc_control_2000q4 = nc.Dataset("https://thredds.rda.ucar.edu/thredds/dodsC/files/g/ds612.0/CTRL/2000/wrf2d_d01_CTRL_SNOW_ACC_NC_200010-200012.nc")
+snow_acc_warm_2000q4 = nc.Dataset("https://thredds.rda.ucar.edu/thredds/dodsC/files/g/ds612.0/PGW/2000/wrf2d_d01_PGW_SNOW_ACC_NC_200010-200012.nc")
 
 print("CTRL: -------------")
 print(snow_acc_control_2000q4)

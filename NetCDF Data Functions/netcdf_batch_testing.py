@@ -63,7 +63,7 @@ def get_wrf_dataset(set_type: str, subset_time_start = 0, subset_time_end = -1, 
     url_list = []
     num_hrs_list = [2159, 2183, 2207, 2207]
     
-    url_start = f"https://rda.ucar.edu/thredds/dodsC/files/g/ds612.0/{set_type}/"
+    url_start = f"https://thredds.rda.ucar.edu/thredds/dodsC/files/g/ds612.0/{set_type}/"
     every_24_hr_time_constraint = ""
     colorado_constraint = ""
     
@@ -127,54 +127,99 @@ def get_wrf_dataset(set_type: str, subset_time_start = 0, subset_time_end = -1, 
 #%% Importing
 
 all_ctrl_data = get_wrf_dataset(set_type="CTRL", subset_every_24_hr=False, subset_colorado_area=True, include_timestrs=True, include_xlat_xlong=True)
+
+print("Baseline: ====================================")
 print(all_ctrl_data.info)
-
-ctrl_times = all_ctrl_data["Times"].values # will need a .values() to unpack-- AFTER your specific, requested elements are selected for
-ctrl_snow = all_ctrl_data["SNOW_ACC_NC"] # will need a .values() to unpack-- AFTER your specific, requested elements are selected for
-
-#Sanity check for times. NOTE that sel/isel actually doesn't matter, because Time (not Times) is a dimension, for which the index and label are the same.
-print(ctrl_times[37271])
-print(ctrl_times[37272])
-
-#Sanity check for coords.
-verify_colorado_coordinate_bounds(all_ctrl_data)
-
-# pgw_url_list = get_url_list(set_name="PGW")
-# all_pgw_data: xr.Dataset = xr.open_mfdataset(pgw_url_list, concat_dim="Time", combine="nested")
+print("\n")
+# all_pgw_data = get_wrf_dataset(set_type="PGW", subset_every_24_hr=True, subset_colorado_area=True, include_timestrs=True, include_xlat_xlong=True)
 # print(all_pgw_data.info)
 
+snow_da: xr.DataArray = all_ctrl_data["SNOW_ACC_NC"]
+print("Snow DataArray: ====================================")
+print(snow_da)
+print("\n")
+
+print("Comparing before/after coarsen: ====================================")
+original_values = snow_da.isel(Time=np.arange(72,96)).values
+print(f"Before type: {type(original_values)}")
+print(f"Before shape: {original_values.shape}")
+print(f"Before #nonzero: {np.count_nonzero(original_values)}")
+print(f"Before overall sum: {np.sum(original_values)}")
+print(f"Before first element: {np.sum(original_values[:,24,24])}")
+
+
+coarsened_snow_summed: xr.DataArray = snow_da.coarsen(Time=24, boundary="exact").sum() # This lines messed. When fixed, condense with below line
+coarsened_snow_summed_data = coarsened_snow_summed.data 
+
+coarsened_values = coarsened_snow_summed.isel(Time=3).values
+print(f"After type: {type(coarsened_values)}")
+print(f"After shape: {coarsened_values.shape}")
+print(f"After #nonzero: {np.count_nonzero(coarsened_values)}")
+print(f"After overall sum: {np.sum(coarsened_values)}")
+print(f"After first element: {coarsened_values[24,24]}")
+
+print("\n")
+
+time_length = all_ctrl_data.dims["Time"]
+rest_of_data = all_ctrl_data.drop("SNOW_ACC_NC").isel(Time=np.arange(0,time_length,24))
+all_ctrl_data = rest_of_data.assign(SNOW_ACC_NC=(["Time", "south_north", "west_east"], coarsened_snow_summed_data))
+print("New Array: ====================================")
+print(all_ctrl_data.info)
+print("\n")
+
+all_ctrl_data = all_ctrl_data.rename({"Times": "Time"}).swap_dims({"Time": "Time"}) #renames Times variable and sets it as a dimension coordinate to the dimension"Time"
+                                                                                    # the swap_dims({"Time": "Time"}) changes the dimension "Time", represented by the key
+                                                                                    # , to be named and associated with the coordinate "Time", represented by the value
+                                                                                    # Do this after coarsening process, since coarsening of the S64 timestrs will throw an error
+ctrl_times: np.ndarray = all_ctrl_data["Time"].values # will need a .values() to unpack-- AFTER your specific, requested elements are selected for
+ctrl_snow_da: xr.DataArray = all_ctrl_data["SNOW_ACC_NC"] # will need a .values() to unpack-- AFTER your specific, requested elements are selected for
+
+
+print("Sanity check for times. ========================")
+ctrl_time_da: np.ndarray = ctrl_snow_da["Time"] 
+ctrl_time_da = ctrl_time_da.values
+print(ctrl_time_da[0])
+print(ctrl_time_da[1552])
+print(ctrl_time_da[1553])
+print(ctrl_time_da[-1])
+print("\n")
+
+print("Sanity check for coords. ========================")
+verify_colorado_coordinate_bounds(all_ctrl_data)
+
+# test = ctrl_snow.isel(Time=0).values
+# print(np.count_nonzero(test))
 
 #%% Testing and Mapping
 
+# plt.figure(figsize=(14, 6))
+# ax = plt.axes(projection=ccrs.PlateCarree())
+# ax.set_global()
+# ctrl_snow_sample.plot.pcolormesh(
+#     ax=ax, transform=ccrs.PlateCarree(), x="XLAT", y="XLONG", add_colorbar=True
+# )
+# ax.coastlines()
+# ax.set_ylim([0,90])
+# plt.show()
+
+
 # Setup the initial plot
-fig = plt.figure()
-ax = plt.axes(projection=ccrs.LambertConformal())
-extent = [-109.046667, -102.046667, 37, 41]
-ax.set_extent(extent, ccrs.PlateCarree())
-ax.coastlines()
-
-# Set up levels etc in this call. 
-image = ctrl_snow.sel(Time = 0).plot.imshow(ax=ax, transform=ccrs.PlateCarree(), animated=True)
-
-def update(t):
-    # Update the plot for a specific time
-    print(t)
-    # ax.set_title(ctrl_times.sel(Time=t).values)
-    image.set_array(ctrl_snow.sel(Time=t).values)
-    return image
-
-# Run the animation, applying `update()` for each of the times in the variable
-# animation = anim.FuncAnimation(fig, update, frames=ctrl_snow.Time.values, interval=200, blit=False)
-plt.show()
-
+# fig = plt.figure()
 # ax = plt.axes(projection=ccrs.LambertConformal())
-# ax.coastlines() 
-# ctrl_plot = all_ctrl_data["SNOW_ACC_NC"].sel(Time=274)
-# ctrl_plot.plot()
-# plt.show()
+# extent = [-109.046667, -102.046667, 37, 41]
+# ax.set_extent(extent, ccrs.PlateCarree())
+# ax.coastlines()
 
-# pgw_plot = all_pgw_data["SNOW_ACC_NC"].sel(Time=300)
-# print(pgw_plot.shape)
-# pgw_plot.plot()
+# # Set up levels etc in this call. 
+# image = ctrl_snow.sel(Time = 0).plot.imshow(ax=ax, transform=ccrs.PlateCarree(), animated=True)
+
+# def update(t):
+#     # Update the plot for a specific time
+#     print(t)
+#     ax.set_title(ctrl_times.sel(Time=t).values)
+#     image.set_array(ctrl_snow.sel(Time=t).values)
+#     return image
+
+# # Run the animation, applying `update()` for each of the times in the variable
+# animation = anim.FuncAnimation(fig, update, frames=ctrl_snow.Time.values, interval=200, blit=False)
 # plt.show()
-# Next: plot both, and narrow down to breck/rocky mountains
