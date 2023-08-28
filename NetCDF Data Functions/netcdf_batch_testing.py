@@ -30,6 +30,13 @@ def get_closest_latitude_longitude(XLAT, XLONG, south_north_value, west_east_val
 
     return (latitude_pt, longitude_pt)
 
+def get_index_from_date(year, start_month):
+    """Get index for a file in the urllist from a date range"""
+
+    # Starts at 0 for 2000-10-12, 1 for 2001-01-03, 51 for 2013-07-09
+    index = (year-2001)*4 + 1
+    index += (start_month - 1)/3
+    return int(index)
 
 def verify_colorado_coordinate_bounds(data):
     """Outputs information for the bottom-left (southwest) and top-right (northeast) corners of the colorado coordinate bounds."""
@@ -47,13 +54,22 @@ def verify_colorado_coordinate_bounds(data):
     top_right_coord_tuple = get_closest_latitude_longitude(XLAT, XLONG, top_right[0], top_right[1])
     print(f"Top-right coords: {top_right_coord_tuple}")
 
-def get_index_from_date(year, start_month):
-    """Get index for a file in the urllist from a date range"""
+def verify_times(times_coord, subset_every_24_hr: bool=True):
+    """Outputs information for the first, second, last, and gap-adjacent dates for a Time dimension coordinate. Works for every 24 hr scheme."""
 
-    # Starts at 0 for 2000-10-12, 1 for 2001-01-03, 51 for 2013-07-09
-    index = (year-2001)*4 + 1
-    index += (start_month - 1)/3
-    return int(index)
+    if subset_every_24_hr:
+        gap_before = 1552
+        gap_after = 1553
+    else:
+        gap_before = 37271
+        gap_after = 37272
+    
+    print(times_coord[0])
+    print(times_coord[1])
+    print(times_coord[gap_before])
+    print(times_coord[gap_after])
+    print(times_coord[-1])
+    print()
 
 
 def get_wrf_dataset(set_type: str, subset_time_start = 0, subset_time_end = -1, subset_every_24_hr: bool = True, subset_colorado_area: bool = True, 
@@ -124,71 +140,55 @@ def get_wrf_dataset(set_type: str, subset_time_start = 0, subset_time_end = -1, 
     return dataset.isel(Time=slice(subset_time_start, subset_time_end))
 
 
+def coarsen_dataset(dataset: xr.Dataset):
+    """Returns a coarsened version of a non-every-24hr-dataset-retrieval, summed in 24-hour windows."""
+    # Coarsen just snow DataArray, and sum it over each day
+    snow_da: xr.DataArray = dataset["SNOW_ACC_NC"]
+    coarsened_snow_summed: xr.DataArray = snow_da.coarsen(Time=24, boundary="exact").sum()
+    coarsened_snow_summed_data = coarsened_snow_summed.data 
+
+    # Coarsen rest of data
+    time_length = dataset.dims["Time"]
+    rest_of_data = dataset.drop("SNOW_ACC_NC").isel(Time=np.arange(0,time_length,24))
+
+    return rest_of_data.assign(SNOW_ACC_NC=(["Time", "south_north", "west_east"], coarsened_snow_summed_data))
+
+
+def setup_time_coordinate(dataset: xr.Dataset):
+    """Returns a dataset in which Times has been made a dimension coordinate variable."""
+    return all_ctrl_data.rename({"Times": "Time"}).swap_dims({"Time": "Time"}) #renames Times variable and sets it as a dimension coordinate to the dimension"Time"
+                                                                                    # the swap_dims({"Time": "Time"}) changes the dimension "Time", represented by the key
+                                                                                    # , to be named and associated with the coordinate "Time", represented by the value
+                                                                                    # Do this after coarsening process, since coarsening of the S64 timestrs will throw an error
+
+
 #%% Importing
 
 all_ctrl_data = get_wrf_dataset(set_type="CTRL", subset_every_24_hr=False, subset_colorado_area=True, include_timestrs=True, include_xlat_xlong=True)
 
-print("Baseline: ====================================")
+print("Baseline Dataset: ====================================")
 print(all_ctrl_data.info)
 print("\n")
 # all_pgw_data = get_wrf_dataset(set_type="PGW", subset_every_24_hr=True, subset_colorado_area=True, include_timestrs=True, include_xlat_xlong=True)
 # print(all_pgw_data.info)
 
-snow_da: xr.DataArray = all_ctrl_data["SNOW_ACC_NC"]
-print("Snow DataArray: ====================================")
-print(snow_da)
-print("\n")
+all_ctrl_data = coarsen_dataset(all_ctrl_data)
 
-print("Comparing before/after coarsen: ====================================")
-original_values = snow_da.isel(Time=np.arange(72,96)).values
-print(f"Before type: {type(original_values)}")
-print(f"Before shape: {original_values.shape}")
-print(f"Before #nonzero: {np.count_nonzero(original_values)}")
-print(f"Before overall sum: {np.sum(original_values)}")
-print(f"Before first element: {np.sum(original_values[:,24,24])}")
+all_ctrl_data = setup_time_coordinate(all_ctrl_data)
 
-
-coarsened_snow_summed: xr.DataArray = snow_da.coarsen(Time=24, boundary="exact").sum() # This lines messed. When fixed, condense with below line
-coarsened_snow_summed_data = coarsened_snow_summed.data 
-
-coarsened_values = coarsened_snow_summed.isel(Time=3).values
-print(f"After type: {type(coarsened_values)}")
-print(f"After shape: {coarsened_values.shape}")
-print(f"After #nonzero: {np.count_nonzero(coarsened_values)}")
-print(f"After overall sum: {np.sum(coarsened_values)}")
-print(f"After first element: {coarsened_values[24,24]}")
-
-print("\n")
-
-time_length = all_ctrl_data.dims["Time"]
-rest_of_data = all_ctrl_data.drop("SNOW_ACC_NC").isel(Time=np.arange(0,time_length,24))
-all_ctrl_data = rest_of_data.assign(SNOW_ACC_NC=(["Time", "south_north", "west_east"], coarsened_snow_summed_data))
-print("New Array: ====================================")
+print("Prepared Dataset: ====================================")
 print(all_ctrl_data.info)
 print("\n")
 
-all_ctrl_data = all_ctrl_data.rename({"Times": "Time"}).swap_dims({"Time": "Time"}) #renames Times variable and sets it as a dimension coordinate to the dimension"Time"
-                                                                                    # the swap_dims({"Time": "Time"}) changes the dimension "Time", represented by the key
-                                                                                    # , to be named and associated with the coordinate "Time", represented by the value
-                                                                                    # Do this after coarsening process, since coarsening of the S64 timestrs will throw an error
 ctrl_times: np.ndarray = all_ctrl_data["Time"].values # will need a .values() to unpack-- AFTER your specific, requested elements are selected for
 ctrl_snow_da: xr.DataArray = all_ctrl_data["SNOW_ACC_NC"] # will need a .values() to unpack-- AFTER your specific, requested elements are selected for
 
 
 print("Sanity check for times. ========================")
-ctrl_time_da: np.ndarray = ctrl_snow_da["Time"] 
-ctrl_time_da = ctrl_time_da.values
-print(ctrl_time_da[0])
-print(ctrl_time_da[1552])
-print(ctrl_time_da[1553])
-print(ctrl_time_da[-1])
-print("\n")
+verify_times(ctrl_times, True)
 
 print("Sanity check for coords. ========================")
 verify_colorado_coordinate_bounds(all_ctrl_data)
-
-# test = ctrl_snow.isel(Time=0).values
-# print(np.count_nonzero(test))
 
 #%% Testing and Mapping
 
