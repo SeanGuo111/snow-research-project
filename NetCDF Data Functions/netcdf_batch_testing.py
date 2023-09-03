@@ -183,12 +183,19 @@ print("\n")
 ctrl_times: np.ndarray = all_ctrl_data["Time"].values # will need a .values() to unpack-- AFTER your specific, requested elements are selected for
 ctrl_snow_da: xr.DataArray = all_ctrl_data["SNOW_ACC_NC"] # will need a .values() to unpack-- AFTER your specific, requested elements are selected for
 
+ctrl_snow_np = ctrl_snow_da.values
+print(ctrl_snow_np.shape)
+print(ctrl_snow_da.isel(south_north=0, west_east=0).values.shape)
+print(ctrl_snow_np[:,0,0].shape)
 
-print("Sanity check for times. ========================")
-verify_times(ctrl_times, True)
 
-print("Sanity check for coords. ========================")
-verify_colorado_coordinate_bounds(all_ctrl_data)
+
+# print("Sanity check for times. ========================")
+# verify_times(ctrl_times, True)
+
+# print("Sanity check for coords. ========================")
+# verify_colorado_coordinate_bounds(all_ctrl_data)
+
 
 #%% Testing and Mapping
 
